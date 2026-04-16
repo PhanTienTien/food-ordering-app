@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/colors.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
+import '../providers/auth_provider.dart';
+import '../widgets/bottom_nav.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController =

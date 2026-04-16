@@ -34,9 +34,6 @@ class CartScreen extends StatelessWidget {
   }
 }
 
-//
-// 🔹 CART LIST
-//
 class _CartList extends StatelessWidget {
   const _CartList();
 
