@@ -28,5 +28,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // For reports
     List<Order> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
+    List<Order> findByRestaurantIdAndCreatedAtBetween(Long restaurantId, LocalDateTime start, LocalDateTime end);
+
     long countByStatus(OrderStatus status);
 }

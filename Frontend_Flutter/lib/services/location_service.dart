@@ -1,7 +1,6 @@
-// Location service - simplified version without external dependency
-// You can add geolocator package later: flutter pub add geolocator
-
 import 'dart:math';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class LocationService {
   // Calculate distance between two coordinates using Haversine formula
@@ -26,18 +25,71 @@ class LocationService {
     return degrees * pi / 180;
   }
 
-  // Mock current location - Hanoi coordinates
-  // TODO: Replace with actual GPS using geolocator package
-  static Future<LocationData> getCurrentLocation() async {
-    // Simulate GPS delay
-    await Future.delayed(const Duration(milliseconds: 500));
+  // Check location permission
+  static Future<bool> checkLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return false;
+      }
+    }
+    
+    if (permission == LocationPermission.deniedForever) {
+      return false;
+    }
+    
+    return true;
+  }
 
-    // Default: Hanoi coordinates
-    return LocationData(
-      latitude: 21.0285,
-      longitude: 105.8542,
-      address: 'Hà Nội, Việt Nam',
-    );
+  // Get current location using GPS
+  static Future<LocationData> getCurrentLocation() async {
+    bool hasPermission = await checkLocationPermission();
+    
+    if (!hasPermission) {
+      // Return default location if permission denied
+      return LocationData(
+        latitude: 21.0285,
+        longitude: 105.8542,
+        address: 'Hà Nội, Việt Nam (Default)',
+      );
+    }
+
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Get address from coordinates (optional, requires geocoding package)
+      String? address = await _getAddressFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      return LocationData(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        address: address,
+      );
+    } catch (e) {
+      // Fallback to default location on error
+      return LocationData(
+        latitude: 21.0285,
+        longitude: 105.8542,
+        address: 'Hà Nội, Việt Nam (Fallback)',
+      );
+    }
+  }
+
+  // Get address from coordinates (simplified - in real app use geocoding package)
+  static Future<String?> _getAddressFromCoordinates(double lat, double lon) async {
+    // In a real implementation, use geocoding package:
+    // List<Placemark> placemarks = await placemarkFromCoordinates(lat, lon);
+    // return placemarks.first.toString();
+    
+    // For now, return null (address can be fetched from backend)
+    return null;
   }
 
   // Calculate shipping fee
