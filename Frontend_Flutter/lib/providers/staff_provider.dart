@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/order.dart';
 import '../models/menu_item.dart';
+import '../utils/error_utils.dart';
 import '../services/staff_service.dart';
 
 // Service Provider
@@ -90,10 +91,7 @@ class StaffOrdersNotifier extends StateNotifier<StaffOrdersState> {
       final orders = await _staffService.getRestaurantOrders(_restaurantId!);
       state = state.copyWith(isLoading: false, orders: orders);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -101,16 +99,20 @@ class StaffOrdersNotifier extends StateNotifier<StaffOrdersState> {
   Future<void> filterByStatus(String status) async {
     if (_restaurantId == null) return;
 
-    state = state.copyWith(isLoading: true, error: null, selectedStatus: status);
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      selectedStatus: status,
+    );
 
     try {
-      final orders = await _staffService.getOrdersByStatus(_restaurantId!, status);
+      final orders = await _staffService.getOrdersByStatus(
+        _restaurantId!,
+        status,
+      );
       state = state.copyWith(isLoading: false, orders: orders);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -123,7 +125,7 @@ class StaffOrdersNotifier extends StateNotifier<StaffOrdersState> {
       await loadOrders();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -137,7 +139,7 @@ class StaffOrdersNotifier extends StateNotifier<StaffOrdersState> {
       await loadOrders();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -151,7 +153,7 @@ class StaffOrdersNotifier extends StateNotifier<StaffOrdersState> {
       await loadOrders();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -165,7 +167,7 @@ class StaffOrdersNotifier extends StateNotifier<StaffOrdersState> {
       await loadOrders();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -179,7 +181,7 @@ class StaffOrdersNotifier extends StateNotifier<StaffOrdersState> {
       await loadOrders();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -210,10 +212,7 @@ class StaffMenuNotifier extends StateNotifier<StaffMenuState> {
       final items = await _staffService.getRestaurantMenuItems(_restaurantId!);
       state = state.copyWith(isLoading: false, menuItems: items);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -224,7 +223,7 @@ class StaffMenuNotifier extends StateNotifier<StaffMenuState> {
       await loadMenuItems();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -232,15 +231,54 @@ class StaffMenuNotifier extends StateNotifier<StaffMenuState> {
   void clearError() {
     state = state.copyWith(error: null);
   }
+
+  Future<bool> updateItemPrice(
+    int itemId,
+    double price,
+    double discountPrice,
+  ) async {
+    try {
+      await _staffService.updateItemPrice(itemId, price, discountPrice);
+      await loadMenuItems();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: ErrorUtils.message(e));
+      return false;
+    }
+  }
+
+  Future<bool> createMenuItem(Map<String, dynamic> data) async {
+    try {
+      await _staffService.createMenuItem(data);
+      await loadMenuItems();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: ErrorUtils.message(e));
+      return false;
+    }
+  }
+
+  Future<bool> deleteMenuItem(int itemId) async {
+    try {
+      await _staffService.deleteMenuItem(itemId);
+      await loadMenuItems();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: ErrorUtils.message(e));
+      return false;
+    }
+  }
 }
 
 // Providers
-final staffOrdersProvider = StateNotifierProvider<StaffOrdersNotifier, StaffOrdersState>((ref) {
-  final service = ref.watch(staffServiceProvider);
-  return StaffOrdersNotifier(service);
-});
+final staffOrdersProvider =
+    StateNotifierProvider<StaffOrdersNotifier, StaffOrdersState>((ref) {
+      final service = ref.watch(staffServiceProvider);
+      return StaffOrdersNotifier(service);
+    });
 
-final staffMenuProvider = StateNotifierProvider<StaffMenuNotifier, StaffMenuState>((ref) {
-  final service = ref.watch(staffServiceProvider);
-  return StaffMenuNotifier(service);
-});
+final staffMenuProvider =
+    StateNotifierProvider<StaffMenuNotifier, StaffMenuState>((ref) {
+      final service = ref.watch(staffServiceProvider);
+      return StaffMenuNotifier(service);
+    });

@@ -1,69 +1,88 @@
 import 'package:flutter/material.dart';
-import '../constants/colors.dart';
-import '../screens/home_screen.dart';
-import '../screens/cart_screen.dart';
-import '../screens/favorite_screen.dart';
-import '../screens/order_history_screen.dart';
-import '../screens/setting_screen.dart';
-import '../screens/login_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AppDrawer extends StatelessWidget {
+import '../constants/colors.dart';
+import '../navigation/app_navigation.dart';
+import '../providers/auth_provider.dart';
+import '../screens/login_screen.dart';
+import '../screens/notifications_screen.dart';
+
+class AppDrawer extends ConsumerWidget {
+  const AppDrawer({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final displayName = authState.user?.name;
+
     return Drawer(
       child: Column(
         children: [
-
-          /// 🔹 HEADER
           UserAccountsDrawerHeader(
-            decoration: BoxDecoration(
-              color: AppColors.primary,
+            decoration: const BoxDecoration(color: AppColors.primary),
+            accountName: Text(
+              displayName != null && displayName.isNotEmpty
+                  ? displayName
+                  : 'User ${authState.userId ?? ''}',
             ),
-            accountName: Text("Tien Phan"),
-            accountEmail: Text("tienphan@email.com"),
-            currentAccountPicture: CircleAvatar(
-              backgroundImage:
-              NetworkImage("https://i.pravatar.cc/150"),
+            accountEmail: Text(authState.role ?? 'CUSTOMER'),
+            currentAccountPicture: const CircleAvatar(
+              backgroundImage: NetworkImage('https://i.pravatar.cc/150'),
             ),
           ),
-
-          /// 🔹 MENU ITEMS
-          _buildItem(context, Icons.home, "Home", HomeScreen()),
-          _buildItem(context, Icons.receipt, "Orders", CartScreen()),
-          _buildItem(context, Icons.receipt, "Orders History", OrderHistoryScreen()),
-          _buildItem(context, Icons.favorite, "Favorite", FavoriteScreen()),
-          _buildItem(context, Icons.settings, "Settings", SettingScreen()),
-
-          Spacer(),
-
-          /// 🔹 LOGOUT
+          ...customerDrawerEntries.map(
+            (entry) =>
+                _buildItem(context, entry.icon, entry.label, entry.builder()),
+          ),
+          _buildItem(
+            context,
+            Icons.notifications,
+            'Notifications',
+            const NotificationsScreen(),
+          ),
+          const Spacer(),
           _buildItem(
             context,
             Icons.logout,
-            "Logout",
-            LoginScreen(),
+            'Logout',
+            const LoginScreen(),
             isLogout: true,
+            onTap: () async {
+              await ref.read(authProvider.notifier).logout();
+              if (!context.mounted) {
+                return;
+              }
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildItem(BuildContext context, IconData icon,
-      String title, Widget screen,
-      {bool isLogout = false}) {
+  Widget _buildItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Widget screen, {
+    bool isLogout = false,
+    VoidCallback? onTap,
+  }) {
     return ListTile(
-      leading: Icon(icon,
-          color: isLogout ? Colors.red : AppColors.primary),
+      leading: Icon(icon, color: isLogout ? Colors.red : AppColors.primary),
       title: Text(title),
-        onTap: () {
-          Navigator.pop(context);
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => screen),
-          );
+      onTap: () {
+        if (onTap != null) {
+          onTap();
+          return;
         }
+        Navigator.pop(context);
+        Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+      },
     );
   }
 }

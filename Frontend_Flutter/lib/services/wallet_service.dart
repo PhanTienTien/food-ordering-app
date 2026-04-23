@@ -23,14 +23,15 @@ class WalletService {
     }
   }
 
-  Future<Wallet> addBalance(int userId, double amount, String description) async {
+  Future<Wallet> addBalance(
+    int userId,
+    double amount,
+    String description,
+  ) async {
     try {
       final response = await _dio.post(
         '/wallets/user/$userId/deposit',
-        queryParameters: {
-          'amount': amount,
-          'description': description,
-        },
+        queryParameters: {'amount': amount, 'description': description},
       );
       return Wallet.fromJson(response.data);
     } on DioException catch (e) {

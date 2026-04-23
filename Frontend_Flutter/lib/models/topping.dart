@@ -16,5 +16,6 @@ class Topping with _$Topping {
     String? createdAt,
   }) = _Topping;
 
-  factory Topping.fromJson(Map<String, dynamic> json) => _$ToppingFromJson(json);
+  factory Topping.fromJson(Map<String, dynamic> json) =>
+      _$ToppingFromJson(json);
 }

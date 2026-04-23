@@ -19,5 +19,6 @@ class MenuItem with _$MenuItem {
     String? categoryName,
   }) = _MenuItem;
 
-  factory MenuItem.fromJson(Map<String, dynamic> json) => _$MenuItemFromJson(json);
+  factory MenuItem.fromJson(Map<String, dynamic> json) =>
+      _$MenuItemFromJson(json);
 }

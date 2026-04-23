@@ -93,9 +93,11 @@ class LocationNotifier extends StateNotifier<LocationState> {
 }
 
 // Location Provider
-final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>((ref) {
-  return LocationNotifier();
-});
+final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>(
+  (ref) {
+    return LocationNotifier();
+  },
+);
 
 // Simple providers
 final currentLocationProvider = Provider<LocationData?>((ref) {

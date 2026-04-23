@@ -38,18 +38,21 @@ class AddressService {
     bool? isDefault,
   }) async {
     try {
-      final response = await _dio.post('/addresses', data: {
-        'userId': userId,
-        'fullName': fullName,
-        'phoneNumber': phoneNumber,
-        'addressLine': addressLine,
-        'city': city,
-        'district': district,
-        'ward': ward,
-        'latitude': latitude,
-        'longitude': longitude,
-        'isDefault': isDefault,
-      });
+      final response = await _dio.post(
+        '/addresses',
+        data: {
+          'userId': userId,
+          'fullName': fullName,
+          'phoneNumber': phoneNumber,
+          'addressLine': addressLine,
+          'city': city,
+          'district': district,
+          'ward': ward,
+          'latitude': latitude,
+          'longitude': longitude,
+          'isDefault': isDefault,
+        },
+      );
       return Address.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -69,17 +72,20 @@ class AddressService {
     bool? isDefault,
   }) async {
     try {
-      final response = await _dio.put('/addresses/$id', data: {
-        'fullName': fullName,
-        'phoneNumber': phoneNumber,
-        'addressLine': addressLine,
-        'city': city,
-        'district': district,
-        'ward': ward,
-        'latitude': latitude,
-        'longitude': longitude,
-        'isDefault': isDefault,
-      });
+      final response = await _dio.put(
+        '/addresses/$id',
+        data: {
+          'fullName': fullName,
+          'phoneNumber': phoneNumber,
+          'addressLine': addressLine,
+          'city': city,
+          'district': district,
+          'ward': ward,
+          'latitude': latitude,
+          'longitude': longitude,
+          'isDefault': isDefault,
+        },
+      );
       return Address.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);

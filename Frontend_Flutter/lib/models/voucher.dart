@@ -19,5 +19,6 @@ class Voucher with _$Voucher {
     String? status,
   }) = _Voucher;
 
-  factory Voucher.fromJson(Map<String, dynamic> json) => _$VoucherFromJson(json);
+  factory Voucher.fromJson(Map<String, dynamic> json) =>
+      _$VoucherFromJson(json);
 }

@@ -57,10 +57,7 @@ class RestaurantService {
     try {
       final response = await _dio.get(
         '/restaurants/$restaurantId/shipping-fee',
-        queryParameters: {
-          'userLat': userLat,
-          'userLon': userLon,
-        },
+        queryParameters: {'userLat': userLat, 'userLon': userLon},
       );
       return response.data as double;
     } on DioException catch (e) {

@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../constants/colors.dart';
@@ -23,10 +24,9 @@ class _StaffOrdersScreenState extends ConsumerState<StaffOrdersScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(staffOrdersProvider.notifier).setIds(
-            widget.restaurantId,
-            widget.staffId,
-          );
+      ref
+          .read(staffOrdersProvider.notifier)
+          .setIds(widget.restaurantId, widget.staffId);
       ref.read(staffOrdersProvider.notifier).loadOrders();
     });
   }
@@ -42,10 +42,7 @@ class _StaffOrdersScreenState extends ConsumerState<StaffOrdersScreen> {
         elevation: 0,
         title: const Text(
           'Quản lý đơn hàng',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -69,23 +66,26 @@ class _StaffOrdersScreenState extends ConsumerState<StaffOrdersScreen> {
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : state.error != null
-                    ? Center(child: Text('Lỗi: ${state.error}'))
-                    : state.orders.isEmpty
-                        ? const Center(child: Text('Không có đơn hàng'))
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: state.orders.length,
-                            itemBuilder: (context, index) {
-                              return _OrderCard(
-                                order: state.orders[index],
-                                onAccept: () => _handleAccept(state.orders[index].id!),
-                                onPreparing: () => _handlePreparing(state.orders[index].id!),
-                                onReady: () => _handleReady(state.orders[index].id!),
-                                onDelivered: () => _handleDelivered(state.orders[index].id!),
-                                onCancel: () => _showCancelDialog(state.orders[index].id!),
-                              );
-                            },
-                          ),
+                ? Center(child: Text('Lỗi: ${state.error}'))
+                : state.orders.isEmpty
+                ? const Center(child: Text('Không có đơn hàng'))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: state.orders.length,
+                    itemBuilder: (context, index) {
+                      return _OrderCard(
+                        order: state.orders[index],
+                        onAccept: () => _handleAccept(state.orders[index].id!),
+                        onPreparing: () =>
+                            _handlePreparing(state.orders[index].id!),
+                        onReady: () => _handleReady(state.orders[index].id!),
+                        onDelivered: () =>
+                            _handleDelivered(state.orders[index].id!),
+                        onCancel: () =>
+                            _showCancelDialog(state.orders[index].id!),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -104,7 +104,8 @@ class _StaffOrdersScreenState extends ConsumerState<StaffOrdersScreen> {
         itemCount: statuses.length,
         itemBuilder: (context, index) {
           final status = statuses[index];
-          final isSelected = selectedStatus == status ||
+          final isSelected =
+              selectedStatus == status ||
               (selectedStatus == null && status == 'Tất cả');
 
           return Padding(
@@ -117,7 +118,9 @@ class _StaffOrdersScreenState extends ConsumerState<StaffOrdersScreen> {
                   if (status == 'Tất cả') {
                     ref.read(staffOrdersProvider.notifier).loadOrders();
                   } else {
-                    ref.read(staffOrdersProvider.notifier).filterByStatus(status);
+                    ref
+                        .read(staffOrdersProvider.notifier)
+                        .filterByStatus(status);
                   }
                 }
               },
@@ -154,8 +157,16 @@ class _StaffOrdersScreenState extends ConsumerState<StaffOrdersScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem('Chờ xác nhận', state.pendingOrders.length, Colors.orange),
-          _buildStatItem('Đang chuẩn bị', state.preparingOrders.length, Colors.blue),
+          _buildStatItem(
+            'Chờ xác nhận',
+            state.pendingOrders.length,
+            Colors.orange,
+          ),
+          _buildStatItem(
+            'Đang chuẩn bị',
+            state.preparingOrders.length,
+            Colors.blue,
+          ),
           _buildStatItem('Sẵn sàng', state.readyOrders.length, Colors.green),
         ],
       ),
@@ -173,50 +184,56 @@ class _StaffOrdersScreenState extends ConsumerState<StaffOrdersScreen> {
             color: color,
           ),
         ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
-        ),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
     );
   }
 
   Future<void> _handleAccept(int orderId) async {
-    final success = await ref.read(staffOrdersProvider.notifier).acceptOrder(orderId);
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã chấp nhận đơn hàng')),
-      );
+    final success = await ref
+        .read(staffOrdersProvider.notifier)
+        .acceptOrder(orderId);
+    if (!context.mounted) return;
+    if (success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã chấp nhận đơn hàng')));
     }
   }
 
   Future<void> _handlePreparing(int orderId) async {
-    final success = await ref.read(staffOrdersProvider.notifier).markPreparing(orderId);
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đang chuẩn bị đơn hàng')),
-      );
+    final success = await ref
+        .read(staffOrdersProvider.notifier)
+        .markPreparing(orderId);
+    if (!context.mounted) return;
+    if (success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đang chuẩn bị đơn hàng')));
     }
   }
 
   Future<void> _handleReady(int orderId) async {
-    final success = await ref.read(staffOrdersProvider.notifier).markReady(orderId);
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đơn hàng sẵn sàng giao')),
-      );
+    final success = await ref
+        .read(staffOrdersProvider.notifier)
+        .markReady(orderId);
+    if (!context.mounted) return;
+    if (success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đơn hàng sẵn sàng giao')));
     }
   }
 
   Future<void> _handleDelivered(int orderId) async {
-    final success = await ref.read(staffOrdersProvider.notifier).markDelivered(orderId);
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đơn hàng đã giao')),
-      );
+    final success = await ref
+        .read(staffOrdersProvider.notifier)
+        .markDelivered(orderId);
+    if (!context.mounted) return;
+    if (success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đơn hàng đã giao')));
     }
   }
 
@@ -245,7 +262,8 @@ class _StaffOrdersScreenState extends ConsumerState<StaffOrdersScreen> {
               final success = await ref
                   .read(staffOrdersProvider.notifier)
                   .cancelOrder(orderId, reasonController.text);
-              if (success && mounted) {
+              if (!context.mounted) return;
+              if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Đã hủy đơn hàng')),
                 );
@@ -308,14 +326,16 @@ class _OrderCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Items
-            if (order.items != null && order.items!.isNotEmpty)
-              ...order.items!.map((item) => Padding(
-                    padding: const EdgeInsets.only(left: 8, bottom: 4),
-                    child: Text(
-                      '- ${item.menuItem?.name ?? "Món"} x${item.quantity}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  )),
+            if (order.items.isNotEmpty)
+              ...order.items.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(left: 8, bottom: 4),
+                  child: Text(
+                    '- ${item.menuItem?.name ?? "Món"} x${item.quantity}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
 
             const Divider(),
 

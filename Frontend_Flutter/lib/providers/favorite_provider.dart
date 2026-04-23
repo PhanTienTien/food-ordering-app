@@ -1,11 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/favorite_item.dart';
+import '../utils/error_utils.dart';
 import '../services/favorite_service.dart';
 
-final favoriteServiceProvider = Provider<FavoriteService>((ref) => FavoriteService());
+final favoriteServiceProvider = Provider<FavoriteService>(
+  (ref) => FavoriteService(),
+);
 
 class FavoriteState {
   final bool isLoading;
-  final List<dynamic> favorites;
+  final List<FavoriteItem> favorites;
   final Set<int> favoriteItemIds;
   final String? error;
 
@@ -18,7 +22,7 @@ class FavoriteState {
 
   FavoriteState copyWith({
     bool? isLoading,
-    List<dynamic>? favorites,
+    List<FavoriteItem>? favorites,
     Set<int>? favoriteItemIds,
     String? error,
   }) {
@@ -40,17 +44,17 @@ class FavoriteNotifier extends StateNotifier<FavoriteState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final favorites = await _favoriteService.getFavoritesByUser(userId);
-      final itemIds = favorites.map((f) => f['menuItemId'] as int).toSet();
+      final itemIds = favorites
+          .map((f) => f.menuItem?.id)
+          .whereType<int>()
+          .toSet();
       state = state.copyWith(
         isLoading: false,
         favorites: favorites,
         favoriteItemIds: itemIds,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -58,14 +62,23 @@ class FavoriteNotifier extends StateNotifier<FavoriteState> {
     try {
       if (state.favoriteItemIds.contains(menuItemId)) {
         await _favoriteService.removeFavorite(userId, menuItemId);
-        state.favoriteItemIds.remove(menuItemId);
-        state.favorites.removeWhere((f) => f['menuItemId'] == menuItemId);
+        final updatedIds = Set<int>.from(state.favoriteItemIds)
+          ..remove(menuItemId);
+        final updatedFavorites = state.favorites
+            .where((f) => f.menuItem?.id != menuItemId)
+            .toList();
+        state = state.copyWith(
+          favoriteItemIds: updatedIds,
+          favorites: updatedFavorites,
+        );
       } else {
         await _favoriteService.addFavorite(userId, menuItemId);
-        state.favoriteItemIds.add(menuItemId);
+        final updatedIds = Set<int>.from(state.favoriteItemIds)
+          ..add(menuItemId);
+        state = state.copyWith(favoriteItemIds: updatedIds);
       }
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
     }
   }
 
@@ -78,7 +91,9 @@ class FavoriteNotifier extends StateNotifier<FavoriteState> {
   }
 }
 
-final favoriteProvider = StateNotifierProvider<FavoriteNotifier, FavoriteState>((ref) {
-  final favoriteService = ref.watch(favoriteServiceProvider);
-  return FavoriteNotifier(favoriteService);
-});
+final favoriteProvider = StateNotifierProvider<FavoriteNotifier, FavoriteState>(
+  (ref) {
+    final favoriteService = ref.watch(favoriteServiceProvider);
+    return FavoriteNotifier(favoriteService);
+  },
+);

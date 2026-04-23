@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/restaurant.dart';
+import '../utils/error_utils.dart';
 import '../services/restaurant_service.dart';
 
 // Service Provider
-final restaurantServiceProvider = Provider<RestaurantService>((ref) => RestaurantService());
+final restaurantServiceProvider = Provider<RestaurantService>(
+  (ref) => RestaurantService(),
+);
 
 // Restaurant List State
 class RestaurantListState {
@@ -48,10 +51,7 @@ class RestaurantNotifier extends StateNotifier<RestaurantListState> {
       final restaurants = await _restaurantService.getOpenRestaurants();
       state = state.copyWith(isLoading: false, restaurants: restaurants);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -71,7 +71,9 @@ class RestaurantNotifier extends StateNotifier<RestaurantListState> {
       );
 
       final restaurants = nearbyData.map((data) {
-        final restaurant = Restaurant.fromJson(data['restaurant'] as Map<String, dynamic>);
+        final restaurant = Restaurant.fromJson(
+          data['restaurant'] as Map<String, dynamic>,
+        );
         return restaurant.copyWith(
           distanceKm: (data['distanceKm'] as num).toDouble(),
           shippingFee: (data['shippingFee'] as num).toDouble(),
@@ -80,10 +82,7 @@ class RestaurantNotifier extends StateNotifier<RestaurantListState> {
 
       state = state.copyWith(isLoading: false, restaurants: restaurants);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -94,10 +93,11 @@ class RestaurantNotifier extends StateNotifier<RestaurantListState> {
 }
 
 // Restaurant Provider
-final restaurantProvider = StateNotifierProvider<RestaurantNotifier, RestaurantListState>((ref) {
-  final service = ref.watch(restaurantServiceProvider);
-  return RestaurantNotifier(service);
-});
+final restaurantProvider =
+    StateNotifierProvider<RestaurantNotifier, RestaurantListState>((ref) {
+      final service = ref.watch(restaurantServiceProvider);
+      return RestaurantNotifier(service);
+    });
 
 // Simple providers
 final restaurantsProvider = Provider<List<Restaurant>>((ref) {

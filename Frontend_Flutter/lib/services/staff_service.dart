@@ -111,7 +111,9 @@ class StaffService {
   // Get restaurant menu items
   Future<List<MenuItem>> getRestaurantMenuItems(int restaurantId) async {
     try {
-      final response = await _dio.get('/staff/menu-items/restaurant/$restaurantId');
+      final response = await _dio.get(
+        '/staff/menu-items/restaurant/$restaurantId',
+      );
       final List<dynamic> data = response.data;
       return data.map((json) => MenuItem.fromJson(json)).toList();
     } on DioException catch (e) {
@@ -127,6 +129,51 @@ class StaffService {
         queryParameters: {'status': status},
       );
       return MenuItem.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<MenuItem> updateItemPrice(
+    int itemId,
+    double price,
+    double discountPrice,
+  ) async {
+    try {
+      final response = await _dio.put(
+        '/staff/menu-items/$itemId/price',
+        queryParameters: {'price': price, 'discountPrice': discountPrice},
+      );
+      return MenuItem.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<MenuItem> updateItemDetails(
+    int itemId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await _dio.put('/staff/menu-items/$itemId', data: data);
+      return MenuItem.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<MenuItem> createMenuItem(Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.post('/staff/menu-items', data: data);
+      return MenuItem.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> deleteMenuItem(int itemId) async {
+    try {
+      await _dio.delete('/staff/menu-items/$itemId');
     } on DioException catch (e) {
       throw _handleError(e);
     }

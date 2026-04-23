@@ -1,14 +1,15 @@
 import 'package:dio/dio.dart';
-import '../utils/token_storage.dart';
+import '../models/favorite_item.dart';
 import 'dio_client.dart';
 
 class FavoriteService {
   final Dio _dio = DioClient().dio;
 
-  Future<List<dynamic>> getFavoritesByUser(int userId) async {
+  Future<List<FavoriteItem>> getFavoritesByUser(int userId) async {
     try {
       final response = await _dio.get('/favorites/user/$userId');
-      return response.data as List;
+      final List<dynamic> data = response.data;
+      return data.map((json) => FavoriteItem.fromJson(json)).toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -18,10 +19,7 @@ class FavoriteService {
     try {
       await _dio.post(
         '/favorites',
-        queryParameters: {
-          'userId': userId,
-          'menuItemId': menuItemId,
-        },
+        queryParameters: {'userId': userId, 'menuItemId': menuItemId},
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -32,10 +30,7 @@ class FavoriteService {
     try {
       await _dio.delete(
         '/favorites',
-        queryParameters: {
-          'userId': userId,
-          'menuItemId': menuItemId,
-        },
+        queryParameters: {'userId': userId, 'menuItemId': menuItemId},
       );
     } on DioException catch (e) {
       throw _handleError(e);
@@ -46,15 +41,16 @@ class FavoriteService {
     try {
       final response = await _dio.get(
         '/favorites/check',
-        queryParameters: {
-          'userId': userId,
-          'menuItemId': menuItemId,
-        },
+        queryParameters: {'userId': userId, 'menuItemId': menuItemId},
       );
       return response.data as bool;
-    } on DioException catch (e) {
+    } on DioException {
       return false;
     }
+  }
+
+  Future<void> removeFavoriteById(int userId, int menuItemId) async {
+    await removeFavorite(userId, menuItemId);
   }
 
   String _handleError(DioException e) {

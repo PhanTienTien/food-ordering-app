@@ -16,9 +16,13 @@ class ToppingService {
     }
   }
 
-  Future<List<Topping>> getAvailableToppingsByRestaurant(int restaurantId) async {
+  Future<List<Topping>> getAvailableToppingsByRestaurant(
+    int restaurantId,
+  ) async {
     try {
-      final response = await _dio.get('/toppings/restaurant/$restaurantId/available');
+      final response = await _dio.get(
+        '/toppings/restaurant/$restaurantId/available',
+      );
       return (response.data as List)
           .map((json) => Topping.fromJson(json))
           .toList();

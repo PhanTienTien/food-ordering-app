@@ -1,187 +1,174 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/colors.dart';
+import '../models/menu_item.dart';
+import '../providers/cart_provider.dart';
 
-class FoodDetailScreen extends StatelessWidget {
+class FoodDetailScreen extends ConsumerStatefulWidget {
+  final MenuItem menuItem;
+
+  const FoodDetailScreen({super.key, required this.menuItem});
+
+  @override
+  ConsumerState<FoodDetailScreen> createState() => _FoodDetailScreenState();
+}
+
+class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
+  int _quantity = 1;
+  bool _isAdding = false;
+
+  Future<void> _addToCart() async {
+    if (_isAdding) return;
+    setState(() => _isAdding = true);
+
+    try {
+      await ref
+          .read(cartProvider.notifier)
+          .addToCart(widget.menuItem.id!, _quantity);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã thêm vào giỏ hàng')));
+      Navigator.pop(context);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isAdding = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final item = widget.menuItem;
+    final price = item.discountPrice != null && item.discountPrice! > 0
+        ? item.discountPrice!
+        : item.price;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      // 🔹 1. Cho phép body tràn lên dưới AppBar để thấy ảnh nền
-      extendBodyBehindAppBar: true,
-
-      // 🔹 2. Thêm AppBar giống trong ảnh mẫu nhưng làm trong suốt
-      appBar: AppBar(
-        title: const Text(
-          "Order Detail", // Sửa text theo ảnh mẫu của bạn
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        leading: const BackButton(color: Colors.white),
-        backgroundColor: Colors.transparent, // Giữ độ trong suốt để thấy ảnh nền
-        elevation: 0, // Xóa bóng đổ
-        centerTitle: true,
-        actions: [
-          // Giữ lại nút yêu thích cũ của bạn nhưng chuyển vào actions
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              backgroundColor: Colors.white,
-              radius: 18,
-              child: Icon(Icons.favorite_border, color: Colors.black, size: 20),
-            ),
-          ),
-        ],
-      ),
-
       body: Stack(
         children: [
-          /// 🔹 BACKGROUND HEADER
-          Container(
-            height: 280,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(
-                    "https://images.unsplash.com/photo-1504674900247-0877df9cc836"),
-                fit: BoxFit.cover,
+          Positioned.fill(
+            child: Image.network(
+              item.image ?? 'https://via.placeholder.com/800x600',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: Colors.grey[300],
+                child: const Center(
+                  child: Icon(Icons.image_not_supported, size: 64),
+                ),
               ),
             ),
           ),
-
-          /// 🔹 MAIN CONTENT
-          Positioned.fill(
-            top: 200,
-            child: Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-              ),
-
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  SizedBox(height: 60),
-
-                  /// TITLE
-                  Text(
-                    "Fried grill noodles with egg special",
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
-                  ),
-
-                  SizedBox(height: 12),
-
-                  /// INFO ROW
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Positioned.fill(child: Container(color: Colors.black.withAlpha(110))),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
                     children: [
-                      Row(children: [
-                        Icon(Icons.star, color: Colors.orange, size: 16),
-                        SizedBox(width: 4),
-                        Text("4.8"),
-                      ]),
-                      Row(children: [
-                        Icon(Icons.local_fire_department,
-                            color: Colors.orange, size: 16),
-                        SizedBox(width: 4),
-                        Text("124 Kcal"),
-                      ]),
-                      Row(children: [
-                        Icon(Icons.access_time,
-                            color: Colors.orange, size: 16),
-                        SizedBox(width: 4),
-                        Text("15 min"),
-                      ]),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.favorite_border, color: Colors.white),
                     ],
                   ),
-
-                  SizedBox(height: 16),
-
-                  /// DESCRIPTION
-                  Text("Description",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 6),
-                  Text(
-                    "Vegetable noodles is a healthy Chinese inspired dish...",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-
-                  SizedBox(height: 16),
-
-                  /// LOCATION
-                  Text("Location",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 8),
-
-                  Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: NetworkImage(
-                            "https://maps.gstatic.com/tactile/basepage/pegman_sherlock.png"),
-                        fit: BoxFit.cover,
-                      ),
+                ),
+                const Spacer(),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(28),
                     ),
                   ),
-
-                  Spacer(),
-
-                  /// PRICE + BUTTON
-                  Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text("\$35.25",
-                          style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold)),
-                      SizedBox(width: 16),
-
-                      Expanded(
-                        child: Container(
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Add to Cart",
-                              style: TextStyle(color: Colors.white),
+                      Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        item.description ?? 'Chưa có mô tả',
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${price.toStringAsFixed(0)} đ',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
                             ),
                           ),
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: _quantity > 1
+                                    ? () => setState(() => _quantity--)
+                                    : null,
+                                icon: const Icon(Icons.remove_circle_outline),
+                              ),
+                              Text(
+                                _quantity.toString(),
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                              IconButton(
+                                onPressed: () => setState(() => _quantity++),
+                                icon: const Icon(Icons.add_circle_outline),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _isAdding ? null : _addToCart,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: _isAdding
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text('Thêm vào giỏ hàng'),
                         ),
-                      )
+                      ),
                     ],
-                  )
-                ],
-              ),
-            ),
-          ),
-
-          /// 🔹 FOOD IMAGE (OVERLAY)
-          Positioned(
-            top: 140,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                height: 120,
-                width: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: 10)
-                  ],
-                  image: DecorationImage(
-                    image: NetworkImage(
-                        "https://images.unsplash.com/photo-1604908176997-431c9b9d91e3"),
-                    fit: BoxFit.cover,
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ],

@@ -14,5 +14,6 @@ class CartItem with _$CartItem {
     double? totalPrice,
   }) = _CartItem;
 
-  factory CartItem.fromJson(Map<String, dynamic> json) => _$CartItemFromJson(json);
+  factory CartItem.fromJson(Map<String, dynamic> json) =>
+      _$CartItemFromJson(json);
 }

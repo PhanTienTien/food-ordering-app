@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user.dart';
 import '../models/restaurant.dart';
 import '../models/category.dart';
+import '../utils/error_utils.dart';
 import '../services/admin_service.dart';
 
 // Service Provider
@@ -13,11 +14,7 @@ class AdminDashboardState {
   final Map<String, dynamic>? summary;
   final String? error;
 
-  AdminDashboardState({
-    this.isLoading = false,
-    this.summary,
-    this.error,
-  });
+  AdminDashboardState({this.isLoading = false, this.summary, this.error});
 
   AdminDashboardState copyWith({
     bool? isLoading,
@@ -38,11 +35,7 @@ class AdminUsersState {
   final List<User> users;
   final String? error;
 
-  AdminUsersState({
-    this.isLoading = false,
-    this.users = const [],
-    this.error,
-  });
+  AdminUsersState({this.isLoading = false, this.users = const [], this.error});
 
   AdminUsersState copyWith({
     bool? isLoading,
@@ -124,10 +117,7 @@ class AdminDashboardNotifier extends StateNotifier<AdminDashboardState> {
       final summary = await _adminService.getDashboardSummary();
       state = state.copyWith(isLoading: false, summary: summary);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -149,10 +139,7 @@ class AdminUsersNotifier extends StateNotifier<AdminUsersState> {
       final users = await _adminService.getAllUsers();
       state = state.copyWith(isLoading: false, users: users);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -162,7 +149,7 @@ class AdminUsersNotifier extends StateNotifier<AdminUsersState> {
       await loadUsers();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -173,7 +160,7 @@ class AdminUsersNotifier extends StateNotifier<AdminUsersState> {
       await loadUsers();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -184,13 +171,34 @@ class AdminUsersNotifier extends StateNotifier<AdminUsersState> {
       await loadUsers();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
 
   void clearError() {
     state = state.copyWith(error: null);
+  }
+
+  Future<bool> createStaffUser({
+    required String name,
+    required String email,
+    required String password,
+    required int restaurantId,
+  }) async {
+    try {
+      await _adminService.createStaffUser(
+        name: name,
+        email: email,
+        password: password,
+        restaurantId: restaurantId,
+      );
+      await loadUsers();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: ErrorUtils.message(e));
+      return false;
+    }
   }
 }
 
@@ -212,10 +220,7 @@ class AdminRestaurantsNotifier extends StateNotifier<AdminRestaurantsState> {
         pendingRestaurants: pending,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -225,7 +230,7 @@ class AdminRestaurantsNotifier extends StateNotifier<AdminRestaurantsState> {
       await loadRestaurants();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -236,7 +241,7 @@ class AdminRestaurantsNotifier extends StateNotifier<AdminRestaurantsState> {
       await loadRestaurants();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -247,7 +252,18 @@ class AdminRestaurantsNotifier extends StateNotifier<AdminRestaurantsState> {
       await loadRestaurants();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
+      return false;
+    }
+  }
+
+  Future<bool> unlockRestaurant(int id) async {
+    try {
+      await _adminService.unlockRestaurant(id);
+      await loadRestaurants();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -261,7 +277,7 @@ class AdminRestaurantsNotifier extends StateNotifier<AdminRestaurantsState> {
 class AdminCategoriesNotifier extends StateNotifier<AdminCategoriesState> {
   final AdminService _adminService;
 
-  AdminCategoriesNotifier(this._adminService) : state(AdminCategoriesState());
+  AdminCategoriesNotifier(this._adminService) : super(AdminCategoriesState());
 
   Future<void> loadCategories() async {
     state = state.copyWith(isLoading: true, error: null);
@@ -270,10 +286,7 @@ class AdminCategoriesNotifier extends StateNotifier<AdminCategoriesState> {
       final categories = await _adminService.getAllCategories();
       state = state.copyWith(isLoading: false, categories: categories);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -283,7 +296,7 @@ class AdminCategoriesNotifier extends StateNotifier<AdminCategoriesState> {
       await loadCategories();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -294,7 +307,7 @@ class AdminCategoriesNotifier extends StateNotifier<AdminCategoriesState> {
       await loadCategories();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -305,7 +318,7 @@ class AdminCategoriesNotifier extends StateNotifier<AdminCategoriesState> {
       await loadCategories();
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -316,22 +329,28 @@ class AdminCategoriesNotifier extends StateNotifier<AdminCategoriesState> {
 }
 
 // Providers
-final adminDashboardProvider = StateNotifierProvider<AdminDashboardNotifier, AdminDashboardState>((ref) {
-  final service = ref.watch(adminServiceProvider);
-  return AdminDashboardNotifier(service);
-});
+final adminDashboardProvider =
+    StateNotifierProvider<AdminDashboardNotifier, AdminDashboardState>((ref) {
+      final service = ref.watch(adminServiceProvider);
+      return AdminDashboardNotifier(service);
+    });
 
-final adminUsersProvider = StateNotifierProvider<AdminUsersNotifier, AdminUsersState>((ref) {
-  final service = ref.watch(adminServiceProvider);
-  return AdminUsersNotifier(service);
-});
+final adminUsersProvider =
+    StateNotifierProvider<AdminUsersNotifier, AdminUsersState>((ref) {
+      final service = ref.watch(adminServiceProvider);
+      return AdminUsersNotifier(service);
+    });
 
-final adminRestaurantsProvider = StateNotifierProvider<AdminRestaurantsNotifier, AdminRestaurantsState>((ref) {
-  final service = ref.watch(adminServiceProvider);
-  return AdminRestaurantsNotifier(service);
-});
+final adminRestaurantsProvider =
+    StateNotifierProvider<AdminRestaurantsNotifier, AdminRestaurantsState>((
+      ref,
+    ) {
+      final service = ref.watch(adminServiceProvider);
+      return AdminRestaurantsNotifier(service);
+    });
 
-final adminCategoriesProvider = StateNotifierProvider<AdminCategoriesNotifier, AdminCategoriesState>((ref) {
-  final service = ref.watch(adminServiceProvider);
-  return AdminCategoriesNotifier(service);
-});
+final adminCategoriesProvider =
+    StateNotifierProvider<AdminCategoriesNotifier, AdminCategoriesState>((ref) {
+      final service = ref.watch(adminServiceProvider);
+      return AdminCategoriesNotifier(service);
+    });

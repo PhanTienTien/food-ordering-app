@@ -8,10 +8,12 @@ class AdminRestaurantsScreen extends ConsumerStatefulWidget {
   const AdminRestaurantsScreen({super.key});
 
   @override
-  ConsumerState<AdminRestaurantsScreen> createState() => _AdminRestaurantsScreenState();
+  ConsumerState<AdminRestaurantsScreen> createState() =>
+      _AdminRestaurantsScreenState();
 }
 
-class _AdminRestaurantsScreenState extends ConsumerState<AdminRestaurantsScreen> {
+class _AdminRestaurantsScreenState
+    extends ConsumerState<AdminRestaurantsScreen> {
   @override
   void initState() {
     super.initState();
@@ -31,10 +33,7 @@ class _AdminRestaurantsScreenState extends ConsumerState<AdminRestaurantsScreen>
         elevation: 0,
         title: const Text(
           'Quản lý Quán ăn',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         actions: [
           // Pending badge
@@ -48,10 +47,7 @@ class _AdminRestaurantsScreenState extends ConsumerState<AdminRestaurantsScreen>
               ),
               child: Text(
                 '${state.pendingRestaurants.length} chờ duyệt',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
             ),
           IconButton(
@@ -73,34 +69,34 @@ class _AdminRestaurantsScreenState extends ConsumerState<AdminRestaurantsScreen>
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : state.error != null
-                    ? Center(child: Text('Lỗi: ${state.error}'))
-                    : state.restaurants.isEmpty
-                        ? const Center(child: Text('Không có quán nào'))
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: state.restaurants.length,
-                            itemBuilder: (context, index) {
-                              final restaurant = state.restaurants[index];
-                              if (restaurant.status == 'PENDING') {
-                                return const SizedBox.shrink();
-                              }
-                              return _RestaurantCard(
-                                restaurant: restaurant,
-                                onApprove: restaurant.status == 'PENDING'
-                                    ? () => _approveRestaurant(restaurant.id!)
-                                    : null,
-                                onReject: restaurant.status == 'PENDING'
-                                    ? () => _rejectRestaurant(restaurant.id!)
-                                    : null,
-                                onLock: restaurant.status == 'APPROVED'
-                                    ? () => _lockRestaurant(restaurant.id!)
-                                    : null,
-                                onUnlock: restaurant.status == 'SUSPENDED'
-                                    ? () => _unlockRestaurant(restaurant.id!)
-                                    : null,
-                              );
-                            },
-                          ),
+                ? Center(child: Text('Lỗi: ${state.error}'))
+                : state.restaurants.isEmpty
+                ? const Center(child: Text('Không có quán nào'))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: state.restaurants.length,
+                    itemBuilder: (context, index) {
+                      final restaurant = state.restaurants[index];
+                      if (restaurant.status == 'PENDING') {
+                        return const SizedBox.shrink();
+                      }
+                      return _RestaurantCard(
+                        restaurant: restaurant,
+                        onApprove: restaurant.status == 'PENDING'
+                            ? () => _approveRestaurant(restaurant.id!)
+                            : null,
+                        onReject: restaurant.status == 'PENDING'
+                            ? () => _rejectRestaurant(restaurant.id!)
+                            : null,
+                        onLock: restaurant.status == 'APPROVED'
+                            ? () => _lockRestaurant(restaurant.id!)
+                            : null,
+                        onUnlock: restaurant.status == 'SUSPENDED'
+                            ? () => _unlockRestaurant(restaurant.id!)
+                            : null,
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -123,49 +119,61 @@ class _AdminRestaurantsScreenState extends ConsumerState<AdminRestaurantsScreen>
             ),
           ),
           const SizedBox(height: 12),
-          ...pendingRestaurants.map((r) => _RestaurantCard(
-                restaurant: r,
-                isPending: true,
-                onApprove: () => _approveRestaurant(r.id!),
-                onReject: () => _rejectRestaurant(r.id!),
-              )),
+          ...pendingRestaurants.map(
+            (r) => _RestaurantCard(
+              restaurant: r,
+              isPending: true,
+              onApprove: () => _approveRestaurant(r.id!),
+              onReject: () => _rejectRestaurant(r.id!),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Future<void> _approveRestaurant(int id) async {
-    final success = await ref.read(adminRestaurantsProvider.notifier).approveRestaurant(id);
+    final success = await ref
+        .read(adminRestaurantsProvider.notifier)
+        .approveRestaurant(id);
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã duyệt quán')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã duyệt quán')));
     }
   }
 
   Future<void> _rejectRestaurant(int id) async {
-    final success = await ref.read(adminRestaurantsProvider.notifier).rejectRestaurant(id);
+    final success = await ref
+        .read(adminRestaurantsProvider.notifier)
+        .rejectRestaurant(id);
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã từ chối quán')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã từ chối quán')));
     }
   }
 
   Future<void> _lockRestaurant(int id) async {
-    final success = await ref.read(adminRestaurantsProvider.notifier).lockRestaurant(id);
+    final success = await ref
+        .read(adminRestaurantsProvider.notifier)
+        .lockRestaurant(id);
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã khóa quán')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã khóa quán')));
     }
   }
 
   Future<void> _unlockRestaurant(int id) async {
-    // TODO: Implement unlock in provider
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã mở khóa quán')),
-    );
+    final success = await ref
+        .read(adminRestaurantsProvider.notifier)
+        .unlockRestaurant(id);
+    if (success && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã mở khóa quán')));
+    }
   }
 }
 
@@ -211,10 +219,7 @@ class _RestaurantCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         restaurant.address ?? 'Không có địa chỉ',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       ),
                     ],
                   ),
@@ -226,7 +231,9 @@ class _RestaurantCard extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  restaurant.isOpen == true ? Icons.circle : Icons.circle_outlined,
+                  restaurant.isOpen == true
+                      ? Icons.circle
+                      : Icons.circle_outlined,
                   color: restaurant.isOpen == true ? Colors.green : Colors.grey,
                   size: 12,
                 ),
@@ -234,13 +241,18 @@ class _RestaurantCard extends StatelessWidget {
                 Text(
                   restaurant.isOpen == true ? 'Đang mở' : 'Đang đóng',
                   style: TextStyle(
-                    color: restaurant.isOpen == true ? Colors.green : Colors.grey,
+                    color: restaurant.isOpen == true
+                        ? Colors.green
+                        : Colors.grey,
                     fontSize: 12,
                   ),
                 ),
               ],
             ),
-            if (isPending || onApprove != null || onLock != null || onUnlock != null) ...[
+            if (isPending ||
+                onApprove != null ||
+                onLock != null ||
+                onUnlock != null) ...[
               const Divider(),
               Row(
                 children: [
@@ -324,7 +336,7 @@ class _RestaurantCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withAlpha(26),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/cart.dart';
+import '../utils/error_utils.dart';
 import '../services/cart_service.dart';
 
 // Cart Service Provider
@@ -11,17 +12,9 @@ class CartState {
   final Cart? cart;
   final String? error;
 
-  CartState({
-    this.isLoading = false,
-    this.cart,
-    this.error,
-  });
+  CartState({this.isLoading = false, this.cart, this.error});
 
-  CartState copyWith({
-    bool? isLoading,
-    Cart? cart,
-    String? error,
-  }) {
+  CartState copyWith({bool? isLoading, Cart? cart, String? error}) {
     return CartState(
       isLoading: isLoading ?? this.isLoading,
       cart: cart ?? this.cart,
@@ -49,10 +42,7 @@ class CartNotifier extends StateNotifier<CartState> {
       final cart = await _cartService.getCart();
       state = state.copyWith(isLoading: false, cart: cart);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -67,10 +57,7 @@ class CartNotifier extends StateNotifier<CartState> {
       );
       state = state.copyWith(isLoading: false, cart: cart);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -85,10 +72,7 @@ class CartNotifier extends StateNotifier<CartState> {
       );
       state = state.copyWith(isLoading: false, cart: cart);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -105,10 +89,7 @@ class CartNotifier extends StateNotifier<CartState> {
       await _cartService.clearCart();
       state = state.copyWith(isLoading: false, cart: null);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 

@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/colors.dart';
@@ -28,7 +29,9 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
   Future<void> _loadWalletData() async {
     try {
       final loadedWallet = await _walletService.getWalletByUser(widget.userId);
-      final loadedTransactions = await _walletService.getTransactionHistory(widget.userId);
+      final loadedTransactions = await _walletService.getTransactionHistory(
+        widget.userId,
+      );
       setState(() {
         wallet = loadedWallet;
         transactions = loadedTransactions;
@@ -53,20 +56,20 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : wallet == null
-              ? _CreateWalletButton()
-              : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _WalletBalanceCard(wallet: wallet!),
-                      _PointsCard(wallet: wallet!),
-                      _TransactionHistory(transactions: transactions),
-                    ],
-                  ),
-                ),
+          ? _createWalletButton()
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  _WalletBalanceCard(wallet: wallet!),
+                  _PointsCard(wallet: wallet!),
+                  _TransactionHistory(transactions: transactions),
+                ],
+              ),
+            ),
     );
   }
 
-  Widget _CreateWalletButton() {
+  Widget _createWalletButton() {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(16),
@@ -74,11 +77,13 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
           onPressed: () async {
             try {
               await _walletService.createWallet(widget.userId);
+              if (!mounted) return;
               await _loadWalletData();
             } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Lỗi: $e')),
-              );
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
             }
           },
           child: Text('Tạo ví'),
@@ -100,7 +105,7 @@ class _WalletBalanceCard extends StatelessWidget {
       padding: EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withAlpha(204)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -111,10 +116,7 @@ class _WalletBalanceCard extends StatelessWidget {
         children: [
           Text(
             'Số dư ví',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
           SizedBox(height: 8),
           Text(
@@ -156,13 +158,7 @@ class _StatItem extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
-        ),
+        Text(label, style: TextStyle(color: Colors.white70, fontSize: 12)),
         Text(
           value,
           style: TextStyle(
@@ -191,7 +187,7 @@ class _PointsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -202,14 +198,10 @@ class _PointsCard extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.1),
+              color: Colors.amber.withAlpha(26),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              Icons.stars,
-              color: Colors.amber,
-              size: 28,
-            ),
+            child: Icon(Icons.stars, color: Colors.amber, size: 28),
           ),
           SizedBox(width: 16),
           Expanded(
@@ -218,10 +210,7 @@ class _PointsCard extends StatelessWidget {
               children: [
                 Text(
                   'Điểm tích lũy',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 SizedBox(height: 4),
                 Text(
@@ -255,10 +244,7 @@ class _TransactionHistory extends StatelessWidget {
         children: [
           Text(
             'Lịch sử giao dịch',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 16),
           if (transactions.isEmpty)
@@ -295,14 +281,10 @@ class _TransactionCard extends StatelessWidget {
         leading: Container(
           padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withAlpha(26),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 20,
-          ),
+          child: Icon(icon, color: color, size: 20),
         ),
         title: Text(transaction.description ?? ''),
         subtitle: Text(transaction.createdAt ?? ''),
@@ -312,10 +294,7 @@ class _TransactionCard extends StatelessWidget {
           children: [
             Text(
               '${isPositive ? '+' : ''}${transaction.amount?.toStringAsFixed(0) ?? '0'}đ',
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: color, fontWeight: FontWeight.bold),
             ),
             Text(
               'Số dư: ${transaction.balanceAfter?.toStringAsFixed(0) ?? '0'}đ',

@@ -29,21 +29,31 @@ class ReviewService {
 
   Future<double> getAverageRating(int menuItemId) async {
     try {
-      final response = await _dio.get('/reviews/menu-item/$menuItemId/average-rating');
+      final response = await _dio.get(
+        '/reviews/menu-item/$menuItemId/average-rating',
+      );
       return response.data as double;
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
-  Future<Review> createReview(int userId, int orderId, int rating, String comment) async {
+  Future<Review> createReview(
+    int userId,
+    int orderId,
+    int rating,
+    String comment,
+  ) async {
     try {
-      final response = await _dio.post('/reviews', data: {
-        'userId': userId,
-        'orderId': orderId,
-        'rating': rating,
-        'comment': comment,
-      });
+      final response = await _dio.post(
+        '/reviews',
+        data: {
+          'userId': userId,
+          'orderId': orderId,
+          'rating': rating,
+          'comment': comment,
+        },
+      );
       return Review.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);

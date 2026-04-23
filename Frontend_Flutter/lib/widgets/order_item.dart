@@ -4,10 +4,7 @@ class OrderItem extends StatelessWidget {
   final String title;
   final String price;
 
-  const OrderItem({
-    required this.title,
-    required this.price,
-  });
+  const OrderItem({super.key, required this.title, required this.price});
 
   @override
   Widget build(BuildContext context) {

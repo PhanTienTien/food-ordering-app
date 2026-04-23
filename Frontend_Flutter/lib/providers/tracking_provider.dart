@@ -3,7 +3,9 @@ import '../models/location_update.dart';
 import '../services/tracking_service.dart';
 
 // Tracking Service Provider
-final trackingServiceProvider = Provider<TrackingService>((ref) => TrackingService());
+final trackingServiceProvider = Provider<TrackingService>(
+  (ref) => TrackingService(),
+);
 
 // Tracking State
 class TrackingState {
@@ -48,10 +50,7 @@ class TrackingNotifier extends StateNotifier<TrackingState> {
   void connect() {
     _trackingService.connect(
       onLocationUpdate: (update) {
-        state = state.copyWith(
-          currentLocation: update,
-          status: update.status,
-        );
+        state = state.copyWith(currentLocation: update, status: update.status);
       },
       onConnected: () {
         state = state.copyWith(isConnected: true, error: null);
@@ -81,10 +80,12 @@ class TrackingNotifier extends StateNotifier<TrackingState> {
 }
 
 // Tracking Provider
-final trackingProvider = StateNotifierProvider<TrackingNotifier, TrackingState>((ref) {
-  final service = ref.watch(trackingServiceProvider);
-  return TrackingNotifier(service);
-});
+final trackingProvider = StateNotifierProvider<TrackingNotifier, TrackingState>(
+  (ref) {
+    final service = ref.watch(trackingServiceProvider);
+    return TrackingNotifier(service);
+  },
+);
 
 // Simple providers
 final isTrackingConnectedProvider = Provider<bool>((ref) {

@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/colors.dart';
@@ -56,19 +57,19 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : addresses.isEmpty
-              ? Center(child: Text('Chưa có địa chỉ nào'))
-              : ListView.builder(
-                  padding: EdgeInsets.all(16),
-                  itemCount: addresses.length,
-                  itemBuilder: (context, index) {
-                    return _AddressCard(
-                      address: addresses[index],
-                      onSetDefault: () => _setDefaultAddress(addresses[index].id!),
-                      onEdit: () => _showEditAddressDialog(addresses[index]),
-                      onDelete: () => _deleteAddress(addresses[index].id!),
-                    );
-                  },
-                ),
+          ? Center(child: Text('Chưa có địa chỉ nào'))
+          : ListView.builder(
+              padding: EdgeInsets.all(16),
+              itemCount: addresses.length,
+              itemBuilder: (context, index) {
+                return _AddressCard(
+                  address: addresses[index],
+                  onSetDefault: () => _setDefaultAddress(addresses[index].id!),
+                  onEdit: () => _showEditAddressDialog(addresses[index]),
+                  onDelete: () => _deleteAddress(addresses[index].id!),
+                );
+              },
+            ),
     );
   }
 
@@ -76,13 +77,15 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
     try {
       await _addressService.setDefaultAddress(id, widget.userId);
       await _loadAddresses();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đã đặt làm địa chỉ mặc định')),
-      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Đã đặt làm địa chỉ mặc định')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
-      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
     }
   }
 
@@ -90,13 +93,15 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
     try {
       await _addressService.deleteAddress(id);
       await _loadAddresses();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đã xóa địa chỉ')),
-      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Đã xóa địa chỉ')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
-      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
     }
   }
 
@@ -168,12 +173,14 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                     district: districtController.text,
                     ward: wardController.text,
                   );
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   await _loadAddresses();
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Lỗi: $e')),
-                  );
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
                 }
               }
             },
@@ -252,12 +259,14 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                     district: districtController.text,
                     ward: wardController.text,
                   );
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   await _loadAddresses();
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Lỗi: $e')),
-                  );
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
                 }
               }
             },
@@ -328,10 +337,7 @@ class _AddressCard extends StatelessWidget {
                   label: Text('Đặt mặc định'),
                 ),
                 Spacer(),
-                IconButton(
-                  icon: Icon(Icons.edit, size: 20),
-                  onPressed: onEdit,
-                ),
+                IconButton(icon: Icon(Icons.edit, size: 20), onPressed: onEdit),
                 IconButton(
                   icon: Icon(Icons.delete, size: 20),
                   onPressed: onDelete,

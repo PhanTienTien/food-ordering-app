@@ -1,16 +1,21 @@
 import 'dart:math';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class LocationService {
   // Calculate distance between two coordinates using Haversine formula
-  static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  static double calculateDistance(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
     const double earthRadiusKm = 6371.0;
 
     final double latDistance = _toRadians(lat2 - lat1);
     final double lonDistance = _toRadians(lon2 - lon1);
 
-    final double a = sin(latDistance / 2) * sin(latDistance / 2) +
+    final double a =
+        sin(latDistance / 2) * sin(latDistance / 2) +
         cos(_toRadians(lat1)) *
             cos(_toRadians(lat2)) *
             sin(lonDistance / 2) *
@@ -28,25 +33,25 @@ class LocationService {
   // Check location permission
   static Future<bool> checkLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
-    
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         return false;
       }
     }
-    
+
     if (permission == LocationPermission.deniedForever) {
       return false;
     }
-    
+
     return true;
   }
 
   // Get current location using GPS
   static Future<LocationData> getCurrentLocation() async {
     bool hasPermission = await checkLocationPermission();
-    
+
     if (!hasPermission) {
       // Return default location if permission denied
       return LocationData(
@@ -83,11 +88,14 @@ class LocationService {
   }
 
   // Get address from coordinates (simplified - in real app use geocoding package)
-  static Future<String?> _getAddressFromCoordinates(double lat, double lon) async {
+  static Future<String?> _getAddressFromCoordinates(
+    double lat,
+    double lon,
+  ) async {
     // In a real implementation, use geocoding package:
     // List<Placemark> placemarks = await placemarkFromCoordinates(lat, lon);
     // return placemarks.first.toString();
-    
+
     // For now, return null (address can be fetched from backend)
     return null;
   }
@@ -114,9 +122,5 @@ class LocationData {
   final double longitude;
   final String? address;
 
-  LocationData({
-    required this.latitude,
-    required this.longitude,
-    this.address,
-  });
+  LocationData({required this.latitude, required this.longitude, this.address});
 }

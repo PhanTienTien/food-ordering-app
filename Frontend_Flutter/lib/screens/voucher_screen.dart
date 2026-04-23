@@ -4,6 +4,8 @@ import '../constants/colors.dart';
 import '../providers/voucher_provider.dart';
 
 class VoucherScreen extends ConsumerWidget {
+  const VoucherScreen({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final voucherState = ref.watch(voucherProvider);
@@ -18,15 +20,15 @@ class VoucherScreen extends ConsumerWidget {
       body: voucherState.isLoading
           ? Center(child: CircularProgressIndicator())
           : voucherState.vouchers.isEmpty
-              ? Center(child: Text('Không có mã giảm giá nào'))
-              : ListView.builder(
-                  padding: EdgeInsets.all(16),
-                  itemCount: voucherState.vouchers.length,
-                  itemBuilder: (context, index) {
-                    final voucher = voucherState.vouchers[index];
-                    return _VoucherCard(voucher: voucher);
-                  },
-                ),
+          ? Center(child: Text('Không có mã giảm giá nào'))
+          : ListView.builder(
+              padding: EdgeInsets.all(16),
+              itemCount: voucherState.vouchers.length,
+              itemBuilder: (context, index) {
+                final voucher = voucherState.vouchers[index];
+                return _VoucherCard(voucher: voucher);
+              },
+            ),
     );
   }
 }
@@ -48,7 +50,7 @@ class _VoucherCard extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withAlpha(26),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -66,10 +68,7 @@ class _VoucherCard extends StatelessWidget {
                 children: [
                   Text(
                     voucher.code ?? 'N/A',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 4),
                   Text(

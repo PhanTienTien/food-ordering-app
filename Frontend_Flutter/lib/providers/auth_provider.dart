@@ -1,152 +1,151 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/auth_dto.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
+import '../utils/error_utils.dart';
 import '../utils/token_storage.dart';
 
-// Auth Service Provider
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 
-// Auth State
+const Object _unset = Object();
+
 class AuthState {
+  final bool isInitializing;
   final bool isLoading;
   final bool isAuthenticated;
+  final int? userId;
+  final String? role;
   final User? user;
   final String? error;
 
-  AuthState({
+  const AuthState({
+    this.isInitializing = true,
     this.isLoading = false,
     this.isAuthenticated = false,
+    this.userId,
+    this.role,
     this.user,
     this.error,
   });
 
   AuthState copyWith({
+    bool? isInitializing,
     bool? isLoading,
     bool? isAuthenticated,
+    int? userId,
+    String? role,
     User? user,
-    String? error,
+    Object? error = _unset,
   }) {
     return AuthState(
+      isInitializing: isInitializing ?? this.isInitializing,
       isLoading: isLoading ?? this.isLoading,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      userId: userId ?? this.userId,
+      role: role ?? this.role,
       user: user ?? this.user,
-      error: error,
+      error: identical(error, _unset) ? this.error : error as String?,
     );
   }
 }
 
-// Auth Notifier
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthService _authService;
 
-  AuthNotifier(this._authService) : super(AuthState()) {
-    checkAuthStatus();
+  AuthNotifier(this._authService) : super(const AuthState()) {
+    _bootstrap();
   }
 
-  // Check initial auth status
-  Future<void> checkAuthStatus() async {
-    final isLoggedIn = await _authService.isLoggedIn();
-    if (isLoggedIn) {
-      final user = await _authService.getCurrentUser();
-      state = state.copyWith(
-        isAuthenticated: true,
-        user: user,
-      );
-    }
-  }
-
-  // Login
-  Future<bool> login(String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
-
+  Future<void> _bootstrap() async {
     try {
-      final token = await _authService.login(
-        LoginRequest(email: email, password: password),
-      );
-
-      if (token != null) {
-        final user = await _authService.getCurrentUser();
+      final isLoggedIn = await _authService.isLoggedIn();
+      if (isLoggedIn) {
         state = state.copyWith(
-          isLoading: false,
           isAuthenticated: true,
-          user: user,
+          userId: await TokenStorage.getUserId(),
+          role: await TokenStorage.getUserRole(),
         );
-        return true;
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Đăng nhập thất bại',
-        );
-        return false;
       }
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
-      return false;
+    } finally {
+      state = state.copyWith(isInitializing: false);
     }
   }
 
-  // Register
-  Future<bool> register(String name, String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
+  Future<bool> login(String email, String password) {
+    return _authenticate(
+      () => _authService.login(LoginRequest(email: email, password: password)),
+      failureMessage: 'Đăng nhập thất bại',
+    );
+  }
 
-    try {
-      final token = await _authService.register(
+  Future<bool> register(String name, String email, String password) {
+    return _authenticate(
+      () => _authService.register(
         RegisterRequest(name: name, email: email, password: password),
-      );
+      ),
+      failureMessage: 'Đăng ký thất bại',
+    );
+  }
 
-      if (token != null) {
-        final user = await _authService.getCurrentUser();
-        state = state.copyWith(
-          isLoading: false,
-          isAuthenticated: true,
-          user: user,
-        );
-        return true;
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Đăng ký thất bại',
-        );
+  Future<bool> _authenticate(
+    Future<String?> Function() action, {
+    required String failureMessage,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final token = await action();
+      if (token == null || token.isEmpty) {
+        state = state.copyWith(isLoading: false, error: failureMessage);
         return false;
       }
-    } catch (e) {
+
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        isAuthenticated: true,
+        userId: await TokenStorage.getUserId(),
+        role: await TokenStorage.getUserRole(),
+      );
+      return true;
+    } catch (error) {
+      state = state.copyWith(
+        isLoading: false,
+        error: ErrorUtils.message(error),
       );
       return false;
     }
   }
 
-  // Logout
   Future<void> logout() async {
     await _authService.logout();
-    state = AuthState();
+    state = const AuthState(isInitializing: false);
   }
 
-  // Clear error
   void clearError() {
     state = state.copyWith(error: null);
   }
 }
 
-// Auth Notifier Provider
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final authService = ref.watch(authServiceProvider);
   return AuthNotifier(authService);
 });
 
-// Simple providers for auth status
 final isAuthenticatedProvider = Provider<bool>((ref) {
   return ref.watch(authProvider).isAuthenticated;
 });
 
 final currentUserProvider = Provider<User?>((ref) {
   return ref.watch(authProvider).user;
+});
+
+final currentUserIdProvider = Provider<int?>((ref) {
+  return ref.watch(authProvider).userId;
+});
+
+final currentUserRoleProvider = Provider<String?>((ref) {
+  return ref.watch(authProvider).role;
 });
 
 final authErrorProvider = Provider<String?>((ref) {

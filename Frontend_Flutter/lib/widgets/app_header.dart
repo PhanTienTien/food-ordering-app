@@ -18,20 +18,17 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       padding: EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 16),
       decoration: BoxDecoration(
         color: Colors.black87,
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-
           /// 🔙 BACK
           showBack
               ? GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Icon(Icons.arrow_back, color: Colors.white),
-          )
+                  onTap: () => Navigator.pop(context),
+                  child: Icon(Icons.arrow_back, color: Colors.white),
+                )
               : SizedBox(width: 24),
 
           /// 🔹 TITLE

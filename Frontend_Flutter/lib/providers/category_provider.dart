@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/category.dart';
+import '../utils/error_utils.dart';
 import '../services/category_service.dart';
 
 // Service Provider
-final categoryServiceProvider = Provider<CategoryService>((ref) => CategoryService());
+final categoryServiceProvider = Provider<CategoryService>(
+  (ref) => CategoryService(),
+);
 
 // Category List State
 class CategoryListState {
@@ -44,10 +47,7 @@ class CategoryNotifier extends StateNotifier<CategoryListState> {
       final categories = await _categoryService.getAllCategories();
       state = state.copyWith(isLoading: false, categories: categories);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -58,10 +58,11 @@ class CategoryNotifier extends StateNotifier<CategoryListState> {
 }
 
 // Category Provider
-final categoryProvider = StateNotifierProvider<CategoryNotifier, CategoryListState>((ref) {
-  final service = ref.watch(categoryServiceProvider);
-  return CategoryNotifier(service);
-});
+final categoryProvider =
+    StateNotifierProvider<CategoryNotifier, CategoryListState>((ref) {
+      final service = ref.watch(categoryServiceProvider);
+      return CategoryNotifier(service);
+    });
 
 // Simple providers
 final categoriesProvider = Provider<List<Category>>((ref) {

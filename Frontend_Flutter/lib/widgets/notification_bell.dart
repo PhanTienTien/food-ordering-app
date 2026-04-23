@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../screens/notifications_screen.dart';
 
 class NotificationBell extends StatefulWidget {
   final int count;
+  final int? userId;
 
-  const NotificationBell({super.key, this.count = 0});
+  const NotificationBell({super.key, this.count = 0, this.userId});
 
   @override
   State<NotificationBell> createState() => _NotificationBellState();
@@ -11,25 +13,20 @@ class NotificationBell extends StatefulWidget {
 
 class _NotificationBellState extends State<NotificationBell>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _controller;
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
-
-    /// 🔹 Animation rung
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 500),
     );
-
-    _animation = Tween<double>(begin: -0.1, end: 0.1)
-        .chain(CurveTween(curve: Curves.elasticIn))
-        .animate(_controller);
-
-    /// auto rung khi có notification
+    _animation = Tween<double>(
+      begin: -0.1,
+      end: 0.1,
+    ).chain(CurveTween(curve: Curves.elasticIn)).animate(_controller);
     if (widget.count > 0) {
       _controller.repeat(reverse: true);
     }
@@ -45,24 +42,21 @@ class _NotificationBellState extends State<NotificationBell>
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: () {
-        // TODO: mở màn notification
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => NotificationsScreen(userId: widget.userId),
+          ),
+        );
       },
       icon: AnimatedBuilder(
         animation: _animation,
         builder: (context, child) {
-          return Transform.rotate(
-            angle: _animation.value,
-            child: child,
-          );
+          return Transform.rotate(angle: _animation.value, child: child);
         },
-
         child: Stack(
           children: [
-
-            /// 🔔 ICON
             const Icon(Icons.notifications_none, color: Colors.black),
-
-            /// 🔴 BADGE
             if (widget.count > 0)
               Positioned(
                 right: 0,
@@ -79,14 +73,11 @@ class _NotificationBellState extends State<NotificationBell>
                   ),
                   child: Text(
                     widget.count > 9 ? "9+" : "${widget.count}",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 10),
                     textAlign: TextAlign.center,
                   ),
                 ),
-              )
+              ),
           ],
         ),
       ),

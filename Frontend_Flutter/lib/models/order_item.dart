@@ -14,5 +14,6 @@ class OrderItem with _$OrderItem {
     MenuItem? menuItem,
   }) = _OrderItem;
 
-  factory OrderItem.fromJson(Map<String, dynamic> json) => _$OrderItemFromJson(json);
+  factory OrderItem.fromJson(Map<String, dynamic> json) =>
+      _$OrderItemFromJson(json);
 }

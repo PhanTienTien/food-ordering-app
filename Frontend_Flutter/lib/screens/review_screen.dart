@@ -27,8 +27,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
   Future<void> _loadReviews() async {
     try {
-      final loadedReviews = await _reviewService.getReviewsByMenuItem(widget.menuItemId);
-      final avgRating = await _reviewService.getAverageRating(widget.menuItemId);
+      final loadedReviews = await _reviewService.getReviewsByMenuItem(
+        widget.menuItemId,
+      );
+      final avgRating = await _reviewService.getAverageRating(
+        widget.menuItemId,
+      );
       setState(() {
         reviews = loadedReviews;
         averageRating = avgRating;
@@ -54,7 +58,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                _RatingSummary(averageRating: averageRating, reviewCount: reviews.length),
+                _RatingSummary(
+                  averageRating: averageRating,
+                  reviewCount: reviews.length,
+                ),
                 Expanded(
                   child: reviews.isEmpty
                       ? Center(child: Text('Chưa có đánh giá nào'))
@@ -76,7 +83,10 @@ class _RatingSummary extends StatelessWidget {
   final double averageRating;
   final int reviewCount;
 
-  const _RatingSummary({required this.averageRating, required this.reviewCount});
+  const _RatingSummary({
+    required this.averageRating,
+    required this.reviewCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +109,9 @@ class _RatingSummary extends StatelessWidget {
               Row(
                 children: List.generate(5, (index) {
                   return Icon(
-                    index < averageRating.round() ? Icons.star : Icons.star_border,
+                    index < averageRating.round()
+                        ? Icons.star
+                        : Icons.star_border,
                     color: Colors.amber,
                     size: 20,
                   );
@@ -146,7 +158,9 @@ class _ReviewCard extends StatelessWidget {
                 Row(
                   children: List.generate(5, (index) {
                     return Icon(
-                      index < (review.rating ?? 0) ? Icons.star : Icons.star_border,
+                      index < (review.rating ?? 0)
+                          ? Icons.star
+                          : Icons.star_border,
                       color: Colors.amber,
                       size: 16,
                     );

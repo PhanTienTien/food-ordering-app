@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/voucher.dart';
+import '../utils/error_utils.dart';
 import '../services/voucher_service.dart';
 
-final voucherServiceProvider = Provider<VoucherService>((ref) => VoucherService());
+final voucherServiceProvider = Provider<VoucherService>(
+  (ref) => VoucherService(),
+);
 
 class VoucherState {
   final bool isLoading;
@@ -47,17 +50,17 @@ class VoucherNotifier extends StateNotifier<VoucherState> {
       final vouchers = await _voucherService.getActiveVouchers();
       state = state.copyWith(isLoading: false, vouchers: vouchers);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
   Future<void> applyVoucher(String code, double orderAmount) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final discountAmount = await _voucherService.validateVoucher(code, orderAmount);
+      final discountAmount = await _voucherService.validateVoucher(
+        code,
+        orderAmount,
+      );
       final voucher = await _voucherService.getVoucherByCode(code);
       state = state.copyWith(
         isLoading: false,
@@ -65,18 +68,12 @@ class VoucherNotifier extends StateNotifier<VoucherState> {
         discountAmount: discountAmount,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
   void clearVoucher() {
-    state = state.copyWith(
-      appliedVoucher: null,
-      discountAmount: null,
-    );
+    state = state.copyWith(appliedVoucher: null, discountAmount: null);
   }
 
   void clearError() {
@@ -84,7 +81,9 @@ class VoucherNotifier extends StateNotifier<VoucherState> {
   }
 }
 
-final voucherProvider = StateNotifierProvider<VoucherNotifier, VoucherState>((ref) {
+final voucherProvider = StateNotifierProvider<VoucherNotifier, VoucherState>((
+  ref,
+) {
   final voucherService = ref.watch(voucherServiceProvider);
   return VoucherNotifier(voucherService);
 });

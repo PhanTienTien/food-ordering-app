@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/menu_item.dart';
+import '../utils/error_utils.dart';
 import '../services/menu_item_service.dart';
 
 // Service Provider
-final menuItemServiceProvider = Provider<MenuItemService>((ref) => MenuItemService());
+final menuItemServiceProvider = Provider<MenuItemService>(
+  (ref) => MenuItemService(),
+);
 
 // Menu Item List State
 class MenuItemListState {
@@ -56,63 +59,67 @@ class MenuItemNotifier extends StateNotifier<MenuItemListState> {
       final menuItems = await _menuItemService.getAvailableMenuItems();
       state = state.copyWith(isLoading: false, menuItems: menuItems);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
   // Search menu items
   Future<void> searchMenuItems(String keyword) async {
-    state = state.copyWith(isLoading: true, error: null, searchKeyword: keyword);
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      searchKeyword: keyword,
+    );
 
     try {
       final menuItems = await _menuItemService.searchMenuItems(keyword);
       state = state.copyWith(isLoading: false, menuItems: menuItems);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
   // Filter by category
   Future<void> filterByCategory(int? categoryId) async {
-    state = state.copyWith(isLoading: true, error: null, selectedCategoryId: categoryId);
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      selectedCategoryId: categoryId,
+    );
 
     try {
       if (categoryId == null) {
         await loadMenuItems();
         return;
       }
-      final menuItems = await _menuItemService.getMenuItemsByCategory(categoryId);
+      final menuItems = await _menuItemService.getMenuItemsByCategory(
+        categoryId,
+      );
       state = state.copyWith(isLoading: false, menuItems: menuItems);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
   // Filter by restaurant
   Future<void> filterByRestaurant(int? restaurantId) async {
-    state = state.copyWith(isLoading: true, error: null, selectedRestaurantId: restaurantId);
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      selectedRestaurantId: restaurantId,
+    );
 
     try {
       if (restaurantId == null) {
         await loadMenuItems();
         return;
       }
-      final menuItems = await _menuItemService.getMenuItemsByRestaurant(restaurantId);
+      final menuItems = await _menuItemService.getMenuItemsByRestaurant(
+        restaurantId,
+      );
       state = state.copyWith(isLoading: false, menuItems: menuItems);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -136,10 +143,7 @@ class MenuItemNotifier extends StateNotifier<MenuItemListState> {
       );
       state = state.copyWith(isLoading: false, menuItems: menuItems);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -156,10 +160,11 @@ class MenuItemNotifier extends StateNotifier<MenuItemListState> {
 }
 
 // Menu Item Provider
-final menuItemProvider = StateNotifierProvider<MenuItemNotifier, MenuItemListState>((ref) {
-  final service = ref.watch(menuItemServiceProvider);
-  return MenuItemNotifier(service);
-});
+final menuItemProvider =
+    StateNotifierProvider<MenuItemNotifier, MenuItemListState>((ref) {
+      final service = ref.watch(menuItemServiceProvider);
+      return MenuItemNotifier(service);
+    });
 
 // Simple providers
 final menuItemsProvider = Provider<List<MenuItem>>((ref) {

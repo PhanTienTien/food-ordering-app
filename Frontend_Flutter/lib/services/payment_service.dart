@@ -1,66 +1,22 @@
 import 'package:dio/dio.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../models/order.dart';
 import 'dio_client.dart';
 
 class PaymentService {
   final Dio _dio = DioClient().dio;
 
-  // VNPay Payment
-  Future<String> createVNPayPayment({
-    required double amount,
-    required String orderInfo,
-    required String returnUrl,
+  Future<Order> processOrderPayment({
+    required int orderId,
+    required String paymentMethod,
   }) async {
-    try {
-      final response = await _dio.post('/api/payment/vnpay/create', data: {
-        'amount': amount,
-        'orderInfo': orderInfo,
-        'returnUrl': returnUrl,
-      });
-      return response.data['paymentUrl'] as String;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  // Momo Payment
-  Future<String> createMomoPayment({
-    required double amount,
-    required String orderInfo,
-    required String returnUrl,
-  }) async {
-    try {
-      final response = await _dio.post('/api/payment/momo/create', data: {
-        'amount': amount,
-        'orderInfo': orderInfo,
-        'returnUrl': returnUrl,
-      });
-      return response.data['paymentUrl'] as String;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  // Verify Payment
-  Future<bool> verifyPayment(String paymentMethod, Map<String, dynamic> params) async {
     try {
       final response = await _dio.post(
-        '/api/payment/$paymentMethod/verify',
-        data: params,
+        '/orders/$orderId/pay',
+        data: {'paymentMethod': paymentMethod},
       );
-      return response.data['success'] as bool;
+      return Order.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
-    }
-  }
-
-  // Launch Payment URL
-  Future<void> launchPaymentUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw Exception('Không thể mở URL thanh toán');
     }
   }
 
@@ -70,8 +26,8 @@ class PaymentService {
       if (data != null && data['message'] != null) {
         return data['message'];
       }
-      return 'Lỗi server: ${e.response?.statusCode}';
+      return 'Loi server: ${e.response?.statusCode}';
     }
-    return 'Không thể kết nối đến server';
+    return 'Khong the ket noi den server';
   }
 }

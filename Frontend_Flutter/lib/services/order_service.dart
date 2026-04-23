@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import '../models/order.dart';
 import '../models/checkout_request.dart';
-import '../models/payment_request.dart';
 import 'dio_client.dart';
 import '../utils/token_storage.dart';
 
@@ -9,8 +8,12 @@ class OrderService {
   final Dio _dio = DioClient().dio;
 
   // Checkout - create order from cart
-  Future<Order> checkout() async {
+  Future<Order> checkout([CheckoutRequest? request]) async {
     try {
+      if (request != null) {
+        return checkoutWithDetails(request);
+      }
+
       final userId = await TokenStorage.getUserId();
       if (userId == null) throw Exception('User not logged in');
 
@@ -84,11 +87,11 @@ class OrderService {
   }
 
   // Process payment
-  Future<Order> processPayment(int orderId, PaymentRequest request) async {
+  Future<Order> processPayment(int orderId, String paymentMethod) async {
     try {
       final response = await _dio.post(
         '/orders/$orderId/pay',
-        data: request.toJson(),
+        data: {'paymentMethod': paymentMethod},
       );
       return Order.fromJson(response.data);
     } on DioException catch (e) {

@@ -8,7 +8,8 @@ class AdminCategoriesScreen extends ConsumerStatefulWidget {
   const AdminCategoriesScreen({super.key});
 
   @override
-  ConsumerState<AdminCategoriesScreen> createState() => _AdminCategoriesScreenState();
+  ConsumerState<AdminCategoriesScreen> createState() =>
+      _AdminCategoriesScreenState();
 }
 
 class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
@@ -31,10 +32,7 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
         elevation: 0,
         title: const Text(
           'Quản lý Danh mục',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -48,18 +46,18 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.error != null
-              ? Center(child: Text('Lỗi: ${state.error}'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: state.categories.length,
-                  itemBuilder: (context, index) {
-                    return _CategoryCard(
-                      category: state.categories[index],
-                      onEdit: () => _showEditDialog(state.categories[index]),
-                      onDelete: () => _showDeleteDialog(state.categories[index]),
-                    );
-                  },
-                ),
+          ? Center(child: Text('Lỗi: ${state.error}'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: state.categories.length,
+              itemBuilder: (context, index) {
+                return _CategoryCard(
+                  category: state.categories[index],
+                  onEdit: () => _showEditDialog(state.categories[index]),
+                  onDelete: () => _showDeleteDialog(state.categories[index]),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showCreateDialog(),
         backgroundColor: AppColors.primary,
@@ -94,7 +92,8 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
                 final success = await ref
                     .read(adminCategoriesProvider.notifier)
                     .createCategory(nameController.text);
-                if (success && mounted) {
+                if (!context.mounted) return;
+                if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Đã tạo danh mục')),
                   );
@@ -117,9 +116,7 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
         title: const Text('Sửa danh mục'),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Tên danh mục',
-          ),
+          decoration: const InputDecoration(labelText: 'Tên danh mục'),
         ),
         actions: [
           TextButton(
@@ -133,7 +130,8 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
                 final success = await ref
                     .read(adminCategoriesProvider.notifier)
                     .updateCategory(category.id!, nameController.text);
-                if (success && mounted) {
+                if (!context.mounted) return;
+                if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Đã cập nhật danh mục')),
                   );
@@ -164,7 +162,8 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
               final success = await ref
                   .read(adminCategoriesProvider.notifier)
                   .deleteCategory(category.id!);
-              if (success && mounted) {
+              if (!context.mounted) return;
+              if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Đã xóa danh mục')),
                 );
@@ -197,24 +196,16 @@ class _CategoryCard extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          child: const Icon(
-            Icons.category,
-            color: AppColors.primary,
-          ),
+          backgroundColor: AppColors.primary.withAlpha(26),
+          child: const Icon(Icons.category, color: AppColors.primary),
         ),
         title: Text(
           category.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
           'ID: ${category.id}',
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-          ),
+          style: TextStyle(color: Colors.grey[600], fontSize: 12),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

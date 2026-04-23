@@ -37,10 +37,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
         elevation: 0,
         title: const Text(
           'Quản lý Users',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -61,27 +58,27 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : state.error != null
-                    ? Center(child: Text('Lỗi: ${state.error}'))
-                    : filteredUsers.isEmpty
-                        ? const Center(child: Text('Không có users'))
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: filteredUsers.length,
-                            itemBuilder: (context, index) {
-                              return _UserCard(
-                                user: filteredUsers[index],
-                                onLock: () => _lockUser(filteredUsers[index].id!),
-                                onUnlock: () => _unlockUser(filteredUsers[index].id!),
-                                onDelete: () => _showDeleteDialog(filteredUsers[index]),
-                              );
-                            },
-                          ),
+                ? Center(child: Text('Lỗi: ${state.error}'))
+                : filteredUsers.isEmpty
+                ? const Center(child: Text('Không có users'))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredUsers.length,
+                    itemBuilder: (context, index) {
+                      return _UserCard(
+                        user: filteredUsers[index],
+                        onLock: () => _lockUser(filteredUsers[index].id!),
+                        onUnlock: () => _unlockUser(filteredUsers[index].id!),
+                        onDelete: () => _showDeleteDialog(filteredUsers[index]),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to create user screen
+          _showCreateStaffDialog();
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
@@ -132,20 +129,24 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   }
 
   Future<void> _lockUser(int userId) async {
-    final success = await ref.read(adminUsersProvider.notifier).lockUser(userId);
+    final success = await ref
+        .read(adminUsersProvider.notifier)
+        .lockUser(userId);
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã khóa tài khoản')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã khóa tài khoản')));
     }
   }
 
   Future<void> _unlockUser(int userId) async {
-    final success = await ref.read(adminUsersProvider.notifier).unlockUser(userId);
+    final success = await ref
+        .read(adminUsersProvider.notifier)
+        .unlockUser(userId);
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã mở khóa tài khoản')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã mở khóa tài khoản')));
     }
   }
 
@@ -163,15 +164,95 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              final success = await ref.read(adminUsersProvider.notifier).deleteUser(user.id!);
-              if (success && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Đã xóa user')),
-                );
+              final success = await ref
+                  .read(adminUsersProvider.notifier)
+                  .deleteUser(user.id!);
+              if (!context.mounted) return;
+              if (success) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Đã xóa user')));
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateStaffDialog() {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController();
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final restaurantIdController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tạo staff'),
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Tên'),
+                  validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
+                ),
+                TextFormField(
+                  controller: emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
+                ),
+                TextFormField(
+                  controller: passwordController,
+                  decoration: const InputDecoration(labelText: 'Mật khẩu'),
+                  obscureText: true,
+                  validator: (v) =>
+                      v == null || v.length < 6 ? 'Ít nhất 6 ký tự' : null,
+                ),
+                TextFormField(
+                  controller: restaurantIdController,
+                  decoration: const InputDecoration(labelText: 'Restaurant ID'),
+                  keyboardType: TextInputType.number,
+                  validator: (v) => v == null || int.tryParse(v) == null
+                      ? 'Phải là số'
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (!(formKey.currentState?.validate() ?? false)) return;
+              Navigator.pop(context);
+              final success = await ref
+                  .read(adminUsersProvider.notifier)
+                  .createStaffUser(
+                    name: nameController.text.trim(),
+                    email: emailController.text.trim(),
+                    password: passwordController.text.trim(),
+                    restaurantId: int.parse(restaurantIdController.text.trim()),
+                  );
+              if (!context.mounted) return;
+              if (success) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Đã tạo staff')));
+              }
+            },
+            child: const Text('Lưu'),
           ),
         ],
       ),
@@ -202,14 +283,11 @@ class _UserCard extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
-          backgroundColor: roleColor.withOpacity(0.1),
-          child: Icon(
-            _getRoleIcon(user.role ?? 'CUSTOMER'),
-            color: roleColor,
-          ),
+          backgroundColor: roleColor.withAlpha(26),
+          child: Icon(_getRoleIcon(user.role ?? 'CUSTOMER'), color: roleColor),
         ),
         title: Text(
-          user.name ?? 'Không tên',
+          user.name,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             decoration: isLocked ? TextDecoration.lineThrough : null,
@@ -219,27 +297,30 @@ class _UserCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(user.email ?? ''),
+            Text(user.email),
             const SizedBox(height: 4),
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: roleColor.withOpacity(0.1),
+                    color: roleColor.withAlpha(26),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     user.role ?? 'CUSTOMER',
-                    style: TextStyle(
-                      color: roleColor,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: roleColor, fontSize: 12),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: isLocked ? Colors.red[100] : Colors.green[100],
                     borderRadius: BorderRadius.circular(4),

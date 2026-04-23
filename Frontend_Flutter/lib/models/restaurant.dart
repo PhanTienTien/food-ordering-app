@@ -21,5 +21,6 @@ class Restaurant with _$Restaurant {
     DateTime? updatedAt,
   }) = _Restaurant;
 
-  factory Restaurant.fromJson(Map<String, dynamic> json) => _$RestaurantFromJson(json);
+  factory Restaurant.fromJson(Map<String, dynamic> json) =>
+      _$RestaurantFromJson(json);
 }

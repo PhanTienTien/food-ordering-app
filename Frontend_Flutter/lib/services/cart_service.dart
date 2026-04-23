@@ -80,10 +80,7 @@ class CartService {
       final userId = await TokenStorage.getUserId();
       if (userId == null) throw Exception('User not logged in');
 
-      await _dio.delete(
-        '/cart/clear',
-        queryParameters: {'userId': userId},
-      );
+      await _dio.delete('/cart/clear', queryParameters: {'userId': userId});
     } on DioException catch (e) {
       throw _handleError(e);
     }

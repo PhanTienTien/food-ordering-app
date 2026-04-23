@@ -32,10 +32,7 @@ class VoucherService {
     try {
       final response = await _dio.post(
         '/vouchers/validate',
-        queryParameters: {
-          'code': code,
-          'orderAmount': orderAmount,
-        },
+        queryParameters: {'code': code, 'orderAmount': orderAmount},
       );
       return response.data as double;
     } on DioException catch (e) {

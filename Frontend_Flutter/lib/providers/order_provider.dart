@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/order.dart';
+import '../models/checkout_request.dart';
+import '../utils/error_utils.dart';
 import '../services/order_service.dart';
 import 'cart_provider.dart';
 
@@ -12,11 +14,7 @@ class OrderListState {
   final List<Order> orders;
   final String? error;
 
-  OrderListState({
-    this.isLoading = false,
-    this.orders = const [],
-    this.error,
-  });
+  OrderListState({this.isLoading = false, this.orders = const [], this.error});
 
   OrderListState copyWith({
     bool? isLoading,
@@ -37,11 +35,7 @@ class OrderActionState {
   final Order? currentOrder;
   final String? error;
 
-  OrderActionState({
-    this.isLoading = false,
-    this.currentOrder,
-    this.error,
-  });
+  OrderActionState({this.isLoading = false, this.currentOrder, this.error});
 
   OrderActionState copyWith({
     bool? isLoading,
@@ -70,10 +64,7 @@ class OrderListNotifier extends StateNotifier<OrderListState> {
       final orders = await _orderService.getOrderHistory();
       state = state.copyWith(isLoading: false, orders: orders);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 }
@@ -83,14 +74,15 @@ class OrderActionNotifier extends StateNotifier<OrderActionState> {
   final OrderService _orderService;
   final Ref _ref;
 
-  OrderActionNotifier(this._orderService, this._ref) : super(OrderActionState());
+  OrderActionNotifier(this._orderService, this._ref)
+    : super(OrderActionState());
 
   // Checkout - create order from cart
-  Future<bool> checkout() async {
+  Future<bool> checkout([CheckoutRequest? request]) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final order = await _orderService.checkout();
+      final order = await _orderService.checkout(request);
       state = state.copyWith(isLoading: false, currentOrder: order);
 
       // Clear cart after successful checkout
@@ -98,10 +90,7 @@ class OrderActionNotifier extends StateNotifier<OrderActionState> {
 
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -115,10 +104,7 @@ class OrderActionNotifier extends StateNotifier<OrderActionState> {
       state = state.copyWith(isLoading: false, currentOrder: order);
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -131,10 +117,7 @@ class OrderActionNotifier extends StateNotifier<OrderActionState> {
       final order = await _orderService.getOrderDetails(orderId);
       state = state.copyWith(isLoading: false, currentOrder: order);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }
   }
 
@@ -150,16 +133,18 @@ class OrderActionNotifier extends StateNotifier<OrderActionState> {
 }
 
 // Order List Provider
-final orderListProvider = StateNotifierProvider<OrderListNotifier, OrderListState>((ref) {
-  final orderService = ref.watch(orderServiceProvider);
-  return OrderListNotifier(orderService);
-});
+final orderListProvider =
+    StateNotifierProvider<OrderListNotifier, OrderListState>((ref) {
+      final orderService = ref.watch(orderServiceProvider);
+      return OrderListNotifier(orderService);
+    });
 
 // Order Action Provider
-final orderActionProvider = StateNotifierProvider<OrderActionNotifier, OrderActionState>((ref) {
-  final orderService = ref.watch(orderServiceProvider);
-  return OrderActionNotifier(orderService, ref);
-});
+final orderActionProvider =
+    StateNotifierProvider<OrderActionNotifier, OrderActionState>((ref) {
+      final orderService = ref.watch(orderServiceProvider);
+      return OrderActionNotifier(orderService, ref);
+    });
 
 // Simple providers
 final orderHistoryProvider = Provider<List<Order>>((ref) {

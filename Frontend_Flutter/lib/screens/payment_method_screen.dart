@@ -3,95 +3,53 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/colors.dart';
 import '../services/payment_service.dart';
 
-class PaymentMethodScreen extends ConsumerWidget {
+class PaymentMethodScreen extends ConsumerStatefulWidget {
+  final int orderId;
   final double amount;
-  final String orderId;
-  final Function(bool) onPaymentComplete;
+  final void Function(bool success)? onPaymentComplete;
 
   const PaymentMethodScreen({
-    required this.amount,
     required this.orderId,
-    required this.onPaymentComplete,
+    required this.amount,
+    this.onPaymentComplete,
     super.key,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final paymentService = PaymentService();
+  ConsumerState<PaymentMethodScreen> createState() =>
+      _PaymentMethodScreenState();
+}
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text('Phương thức thanh toán'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _OrderSummary(amount: amount),
-            SizedBox(height: 20),
-            _PaymentMethodCard(
-              icon: Icons.account_balance,
-              title: 'Thanh toán qua VNPay',
-              description: 'Thanh toán an toàn với VNPay',
-              color: Colors.blue,
-              onTap: () => _handleVNPay(context, paymentService),
-            ),
-            _PaymentMethodCard(
-              icon: Icons.phone_android,
-              title: 'Thanh toán qua Momo',
-              description: 'Thanh toán nhanh với ví Momo',
-              color: Colors.pink,
-              onTap: () => _handleMomo(context, paymentService),
-            ),
-            _PaymentMethodCard(
-              icon: Icons.money,
-              title: 'Thanh toán khi nhận hàng (COD)',
-              description: 'Tiền mặt khi nhận hàng',
-              color: Colors.green,
-              onTap: () => _handleCOD(context),
-            ),
-            _PaymentMethodCard(
-              icon: Icons.credit_card,
-              title: 'Thanh toán bằng ví',
-              description: 'Sử dụng điểm tích lũy',
-              color: Colors.amber,
-              onTap: () => _handleWallet(context),
-            ),
-          ],
+class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
+  final PaymentService _paymentService = PaymentService();
+  bool _isProcessing = false;
+
+  Future<void> _pay(BuildContext context, String paymentMethod) async {
+    if (_isProcessing) return;
+
+    setState(() => _isProcessing = true);
+    try {
+      final order = await _paymentService.processOrderPayment(
+        orderId: widget.orderId,
+        paymentMethod: paymentMethod,
+      );
+
+      if (!context.mounted) return;
+      widget.onPaymentComplete?.call(order.paymentStatus == 'PAID');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Thanh toan ${order.paymentStatus ?? "PENDING"}'),
         ),
-      ),
-    );
-  }
-
-  Future<void> _handleVNPay(BuildContext context, PaymentService paymentService) async {
-    try {
-      final paymentUrl = await paymentService.createVNPayPayment(
-        amount: amount,
-        orderInfo: 'Thanh toán đơn hàng $orderId',
-        returnUrl: 'foodapp://payment-return',
       );
-      await paymentService.launchPaymentUrl(paymentUrl);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
-      );
-    }
-  }
-
-  Future<void> _handleMomo(BuildContext context, PaymentService paymentService) async {
-    try {
-      final paymentUrl = await paymentService.createMomoPayment(
-        amount: amount,
-        orderInfo: 'Thanh toán đơn hàng $orderId',
-        returnUrl: 'foodapp://payment-return',
-      );
-      await paymentService.launchPaymentUrl(paymentUrl);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
-      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Loi: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
@@ -99,28 +57,85 @@ class PaymentMethodScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Xác nhận thanh toán COD'),
-        content: Text('Bạn sẽ thanh toán ${amount.toStringAsFixed(0)}đ khi nhận hàng.'),
+        title: const Text('Xac nhan thanh toan COD'),
+        content: Text(
+          'Ban se thanh toan ${widget.amount.toStringAsFixed(0)}d khi nhan hang.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Hủy'),
+            child: const Text('Huy'),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              onPaymentComplete(true);
+              _pay(context, 'COD');
             },
-            child: Text('Xác nhận'),
+            child: const Text('Xac nhan'),
           ),
         ],
       ),
     );
   }
 
-  void _handleWallet(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Tính năng thanh toán ví đang phát triển')),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text('Phuong thuc thanh toan'),
+      ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                _OrderSummary(amount: widget.amount),
+                const SizedBox(height: 20),
+                _PaymentMethodCard(
+                  icon: Icons.account_balance,
+                  title: 'Thanh toan qua VNPay',
+                  description: 'Gui yeu cau thanh toan len backend',
+                  color: Colors.blue,
+                  enabled: !_isProcessing,
+                  onTap: () => _pay(context, 'VNPAY'),
+                ),
+                _PaymentMethodCard(
+                  icon: Icons.phone_android,
+                  title: 'Thanh toan qua Momo',
+                  description: 'Gui yeu cau thanh toan len backend',
+                  color: Colors.pink,
+                  enabled: !_isProcessing,
+                  onTap: () => _pay(context, 'MOMO'),
+                ),
+                _PaymentMethodCard(
+                  icon: Icons.money,
+                  title: 'Thanh toan khi nhan hang (COD)',
+                  description: 'Xac nhan thanh toan sau khi nhan hang',
+                  color: Colors.green,
+                  enabled: !_isProcessing,
+                  onTap: () => _handleCOD(context),
+                ),
+                _PaymentMethodCard(
+                  icon: Icons.credit_card,
+                  title: 'Thanh toan bang the',
+                  description: 'Gui yeu cau thanh toan len backend',
+                  color: Colors.amber,
+                  enabled: !_isProcessing,
+                  onTap: () => _pay(context, 'CARD'),
+                ),
+              ],
+            ),
+          ),
+          if (_isProcessing)
+            Container(
+              color: Colors.black.withAlpha(38),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -133,14 +148,14 @@ class _OrderSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.all(20),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black12,
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -149,13 +164,13 @@ class _OrderSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Tổng thanh toán',
+          const Text(
+            'Tong thanh toan',
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            '${amount.toStringAsFixed(0)}đ',
+            '${amount.toStringAsFixed(0)}d',
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -173,6 +188,7 @@ class _PaymentMethodCard extends StatelessWidget {
   final String title;
   final String description;
   final Color color;
+  final bool enabled;
   final VoidCallback onTap;
 
   const _PaymentMethodCard({
@@ -180,49 +196,46 @@ class _PaymentMethodCard extends StatelessWidget {
     required this.title,
     required this.description,
     required this.color,
+    required this.enabled,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Card(
         child: InkWell(
-          onTap: onTap,
+          onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withAlpha(26),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 28,
-                  ),
+                  child: Icon(icon, color: color, size: 28),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         description,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
                         ),
@@ -230,10 +243,7 @@ class _PaymentMethodCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey,
-                ),
+                const Icon(Icons.chevron_right, color: Colors.grey),
               ],
             ),
           ),

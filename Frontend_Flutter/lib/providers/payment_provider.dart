@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/order.dart';
 import '../models/checkout_request.dart';
-import '../models/payment_request.dart';
+import 'order_provider.dart';
+import '../utils/error_utils.dart';
 import '../services/order_service.dart';
 import 'cart_provider.dart';
 
@@ -76,10 +77,7 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
 
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
       return false;
     }
   }
@@ -89,12 +87,10 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final request = PaymentRequest(
-        paymentMethod: state.selectedMethod.code,
-        simulateSuccess: true, // For testing
+      final order = await _orderService.processPayment(
+        orderId,
+        state.selectedMethod.code,
       );
-
-      final order = await _orderService.processPayment(orderId, request);
       state = state.copyWith(
         isLoading: false,
         currentOrder: order,
@@ -105,7 +101,7 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: ErrorUtils.message(e),
         paymentSuccess: false,
       );
       return false;
@@ -124,7 +120,9 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
 }
 
 // Payment Provider
-final paymentProvider = StateNotifierProvider<PaymentNotifier, PaymentState>((ref) {
+final paymentProvider = StateNotifierProvider<PaymentNotifier, PaymentState>((
+  ref,
+) {
   final orderService = ref.watch(orderServiceProvider);
   return PaymentNotifier(orderService, ref);
 });

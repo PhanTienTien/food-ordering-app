@@ -133,6 +133,28 @@ class AdminService {
     }
   }
 
+  Future<User> createStaffUser({
+    required String name,
+    required String email,
+    required String password,
+    required int restaurantId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/admin/users/staff',
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'restaurantId': restaurantId,
+        },
+      );
+      return User.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ==================== CATEGORY MANAGEMENT ====================
 
   // Get all categories

@@ -32,5 +32,6 @@ class WalletTransaction with _$WalletTransaction {
     String? createdAt,
   }) = _WalletTransaction;
 
-  factory WalletTransaction.fromJson(Map<String, dynamic> json) => _$WalletTransactionFromJson(json);
+  factory WalletTransaction.fromJson(Map<String, dynamic> json) =>
+      _$WalletTransactionFromJson(json);
 }

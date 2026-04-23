@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
+import '../services/dio_client.dart';
 import '../models/location_update.dart';
+import '../utils/token_storage.dart';
 
 class TrackingService {
   StompClient? _client;
@@ -9,23 +12,37 @@ class TrackingService {
   Function()? _onDisconnected;
 
   // Connect to WebSocket
-  void connect({
+  Future<void> connect({
     required Function(LocationUpdate) onLocationUpdate,
     Function()? onConnected,
     Function()? onDisconnected,
-  }) {
+  }) async {
     _onLocationUpdate = onLocationUpdate;
     _onConnected = onConnected;
     _onDisconnected = onDisconnected;
 
+    final token = await TokenStorage.getToken();
+    final uri = Uri.parse(DioClient().dio.options.baseUrl);
+    final wsUri = uri.replace(
+      scheme: uri.scheme == 'https' ? 'wss' : 'ws',
+      path: '/ws',
+      query: '',
+      fragment: '',
+    );
+
     _client = StompClient(
       config: StompConfig(
-        url: 'ws://localhost:8080/ws',
+        url: wsUri.toString(),
         onConnect: _onConnect,
         onDisconnect: _onDisconnect,
-        onWebSocketError: (dynamic error) => print('WebSocket Error: $error'),
-        stompConnectHeaders: {'Authorization': 'Bearer token'},
-        webSocketConnectHeaders: {'Authorization': 'Bearer token'},
+        onWebSocketError: (dynamic error) =>
+            debugPrint('WebSocket Error: $error'),
+        stompConnectHeaders: token != null
+            ? {'Authorization': 'Bearer $token'}
+            : {},
+        webSocketConnectHeaders: token != null
+            ? {'Authorization': 'Bearer $token'}
+            : {},
       ),
     );
 
@@ -33,12 +50,12 @@ class TrackingService {
   }
 
   void _onConnect(StompFrame frame) {
-    print('Connected to WebSocket');
+    debugPrint('Connected to WebSocket');
     _onConnected?.call();
   }
 
   void _onDisconnect(StompFrame frame) {
-    print('Disconnected from WebSocket');
+    debugPrint('Disconnected from WebSocket');
     _onDisconnected?.call();
   }
 
@@ -57,7 +74,12 @@ class TrackingService {
   }
 
   // Update driver location (for driver app)
-  void updateLocation(int orderId, double latitude, double longitude, String status) {
+  void updateLocation(
+    int orderId,
+    double latitude,
+    double longitude,
+    String status,
+  ) {
     final update = LocationUpdate(
       orderId: orderId,
       latitude: latitude,
@@ -74,10 +96,7 @@ class TrackingService {
 
   // Mark as delivered
   void markDelivered(int orderId) {
-    _client?.send(
-      destination: '/app/tracking/$orderId/delivered',
-      body: '',
-    );
+    _client?.send(destination: '/app/tracking/$orderId/delivered', body: '');
   }
 
   // Disconnect
