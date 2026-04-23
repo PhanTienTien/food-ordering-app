@@ -2,6 +2,7 @@ package com.tientien.foodapp.favorite.service.impl;
 
 import com.tientien.foodapp.favorite.entity.Favorite;
 import com.tientien.foodapp.favorite.repository.FavoriteRepository;
+import com.tientien.foodapp.favorite.service.FavoriteService;
 import com.tientien.foodapp.menuitems.entity.MenuItem;
 import com.tientien.foodapp.menuitems.repository.MenuItemRepository;
 import com.tientien.foodapp.user.entity.User;

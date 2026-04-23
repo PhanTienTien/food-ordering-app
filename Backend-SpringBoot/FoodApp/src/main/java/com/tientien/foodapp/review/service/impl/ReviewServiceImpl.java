@@ -51,7 +51,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public List<Review> getReviewsByRestaurant(Long restaurantId) {
-        return reviewRepository.findByRestaurantId(restaurantId);
+        return reviewRepository.findByOrderRestaurantId(restaurantId);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
         // Check if user already reviewed this order
-        if (reviewRepository.findByOrderId(request.orderId).isPresent()) {
+        if (!reviewRepository.findByOrderId(request.orderId).isEmpty()) {
             throw new RuntimeException("Order already reviewed");
         }
 
@@ -119,7 +119,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public Double getAverageRatingForRestaurant(Long restaurantId) {
-        List<Review> reviews = reviewRepository.findByRestaurantId(restaurantId);
+        List<Review> reviews = reviewRepository.findByOrderRestaurantId(restaurantId);
         if (reviews.isEmpty()) {
             return 0.0;
         }

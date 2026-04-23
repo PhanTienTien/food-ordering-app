@@ -2,6 +2,7 @@ package com.tientien.foodapp.topping.entity;
 
 import com.tientien.foodapp.common.entity.BaseEntity;
 import com.tientien.foodapp.restaurant.entity.Restaurant;
+import com.tientien.foodapp.topping.enums.ToppingStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

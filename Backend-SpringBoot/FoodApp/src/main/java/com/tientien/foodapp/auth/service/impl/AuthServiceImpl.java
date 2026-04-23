@@ -1,6 +1,7 @@
 package com.tientien.foodapp.auth.service.impl;
 
 import com.tientien.foodapp.auth.dto.req.RegisterRequest;
+import com.tientien.foodapp.auth.dto.resp.LoginResponse;
 import com.tientien.foodapp.auth.service.AuthService;
 import com.tientien.foodapp.common.enums.UserRole;
 import com.tientien.foodapp.common.security.JwtUtil;
@@ -48,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String login(String email, String password) {
+    public LoginResponse login(String email, String password) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Invalid email"));
@@ -57,6 +58,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        return jwtUtil.generateToken(user);
+        String token = jwtUtil.generateToken(user);
+        return new LoginResponse(token, "Login success", user.getRole());
     }
 }

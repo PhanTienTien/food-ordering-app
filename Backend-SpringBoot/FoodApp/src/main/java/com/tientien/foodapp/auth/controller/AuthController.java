@@ -26,7 +26,6 @@ public class AuthController {
     public LoginResponse login(@RequestBody LoginRequest loginRequest) {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
-        String token = authService.login(email, password);
-        return new LoginResponse(token, "Login success");
+        return authService.login(email, password);
     }
 }
