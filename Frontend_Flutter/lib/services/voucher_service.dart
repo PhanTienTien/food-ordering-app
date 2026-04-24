@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/voucher.dart';
 import 'dio_client.dart';
 
@@ -12,7 +13,7 @@ class VoucherService {
           .map((json) => Voucher.fromJson(json))
           .toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -24,7 +25,7 @@ class VoucherService {
       if (e.response?.statusCode == 404) {
         return null;
       }
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -34,20 +35,13 @@ class VoucherService {
         '/vouchers/validate',
         queryParameters: {'code': code, 'orderAmount': orderAmount},
       );
-      return response.data as double;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
+      final value = response.data;
+      if (value is num) {
+        return value.toDouble();
       }
-      return 'Lỗi server: ${e.response?.statusCode}';
+      throw const FormatException('Invalid voucher value response');
+    } on DioException catch (e) {
+      throw ErrorUtils.message(e);
     }
-    return 'Không thể kết nối đến server';
   }
 }

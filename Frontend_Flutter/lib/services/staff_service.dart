@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/order.dart';
 import '../models/menu_item.dart';
 import 'dio_client.dart';
@@ -13,7 +14,7 @@ class StaffService {
       final List<dynamic> data = response.data;
       return data.map((json) => Order.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -26,7 +27,7 @@ class StaffService {
       final List<dynamic> data = response.data;
       return data.map((json) => Order.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -39,7 +40,7 @@ class StaffService {
       );
       return Order.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -52,7 +53,7 @@ class StaffService {
       );
       return Order.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -65,7 +66,7 @@ class StaffService {
       );
       return Order.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -78,7 +79,7 @@ class StaffService {
       );
       return Order.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -91,7 +92,7 @@ class StaffService {
       );
       return Order.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -104,7 +105,7 @@ class StaffService {
       );
       return Order.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -117,7 +118,7 @@ class StaffService {
       final List<dynamic> data = response.data;
       return data.map((json) => MenuItem.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -130,7 +131,7 @@ class StaffService {
       );
       return MenuItem.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -146,7 +147,7 @@ class StaffService {
       );
       return MenuItem.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -158,7 +159,7 @@ class StaffService {
       final response = await _dio.put('/staff/menu-items/$itemId', data: data);
       return MenuItem.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -167,7 +168,7 @@ class StaffService {
       final response = await _dio.post('/staff/menu-items', data: data);
       return MenuItem.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -175,7 +176,7 @@ class StaffService {
     try {
       await _dio.delete('/staff/menu-items/$itemId');
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -187,18 +188,7 @@ class StaffService {
       );
       return response.data;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Lỗi server: ${e.response?.statusCode}';
-    }
-    return 'Không thể kết nối đến server';
   }
 }

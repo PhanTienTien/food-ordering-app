@@ -6,6 +6,7 @@ import '../navigation/app_navigation.dart';
 import '../providers/auth_provider.dart';
 import '../screens/login_screen.dart';
 import '../screens/notifications_screen.dart';
+import '../utils/auth_navigation.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -48,15 +49,7 @@ class AppDrawer extends ConsumerWidget {
             const LoginScreen(),
             isLogout: true,
             onTap: () async {
-              await ref.read(authProvider.notifier).logout();
-              if (!context.mounted) {
-                return;
-              }
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
-              );
+              await logoutAndNavigateToLogin(context, ref);
             },
           ),
         ],

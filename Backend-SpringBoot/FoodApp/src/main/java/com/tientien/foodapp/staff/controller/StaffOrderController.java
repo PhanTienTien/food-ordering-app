@@ -4,8 +4,8 @@ import com.tientien.foodapp.common.enums.OrderStatus;
 import com.tientien.foodapp.order.entity.Order;
 import com.tientien.foodapp.order.service.OrderService;
 import com.tientien.foodapp.user.entity.User;
-import com.tientien.foodapp.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,12 +16,14 @@ import java.util.List;
 public class StaffOrderController {
 
     private final OrderService orderService;
-    private final UserRepository userRepository;
 
     // Get orders for staff's restaurant
     @GetMapping("/restaurant/{restaurantId}")
-    public List<Order> getRestaurantOrders(@PathVariable Long restaurantId) {
-        // TODO: Verify staff belongs to this restaurant
+    public List<Order> getRestaurantOrders(
+            @PathVariable Long restaurantId,
+            Authentication authentication) {
+        User staff = requireStaff(authentication);
+        verifyRestaurantAccess(staff, restaurantId);
         return orderService.getOrdersByRestaurant(restaurantId);
     }
 
@@ -29,7 +31,10 @@ public class StaffOrderController {
     @GetMapping("/restaurant/{restaurantId}/status/{status}")
     public List<Order> getOrdersByStatus(
             @PathVariable Long restaurantId,
-            @PathVariable OrderStatus status) {
+            @PathVariable OrderStatus status,
+            Authentication authentication) {
+        User staff = requireStaff(authentication);
+        verifyRestaurantAccess(staff, restaurantId);
         return orderService.getOrdersByRestaurantAndStatus(restaurantId, status);
     }
 
@@ -37,49 +42,70 @@ public class StaffOrderController {
     @PutMapping("/{orderId}/accept")
     public Order acceptOrder(
             @PathVariable Long orderId,
-            @RequestParam Long staffId) {
-        return orderService.updateStatus(orderId, OrderStatus.ACCEPTED, staffId);
+            Authentication authentication) {
+        User staff = requireStaff(authentication);
+        return orderService.updateStatus(orderId, OrderStatus.ACCEPTED, staff.getId());
     }
 
     // Reject order
     @PutMapping("/{orderId}/reject")
     public Order rejectOrder(
             @PathVariable Long orderId,
-            @RequestParam Long staffId) {
-        return orderService.updateStatus(orderId, OrderStatus.REJECTED, staffId);
+            Authentication authentication) {
+        User staff = requireStaff(authentication);
+        return orderService.updateStatus(orderId, OrderStatus.REJECTED, staff.getId());
     }
 
     // Update to preparing
     @PutMapping("/{orderId}/preparing")
     public Order markPreparing(
             @PathVariable Long orderId,
-            @RequestParam Long staffId) {
-        return orderService.updateStatus(orderId, OrderStatus.PREPARING, staffId);
+            Authentication authentication) {
+        User staff = requireStaff(authentication);
+        return orderService.updateStatus(orderId, OrderStatus.PREPARING, staff.getId());
     }
 
     // Mark ready for delivery
     @PutMapping("/{orderId}/ready")
     public Order markReady(
             @PathVariable Long orderId,
-            @RequestParam Long staffId) {
-        return orderService.updateStatus(orderId, OrderStatus.READY, staffId);
+            Authentication authentication) {
+        User staff = requireStaff(authentication);
+        return orderService.updateStatus(orderId, OrderStatus.READY, staff.getId());
     }
 
     // Mark as delivered (when driver delivers)
     @PutMapping("/{orderId}/delivered")
     public Order markDelivered(
             @PathVariable Long orderId,
-            @RequestParam Long staffId) {
-        return orderService.updateStatus(orderId, OrderStatus.COMPLETED, staffId);
+            Authentication authentication) {
+        User staff = requireStaff(authentication);
+        return orderService.updateStatus(orderId, OrderStatus.COMPLETED, staff.getId());
     }
 
     // Cancel order with reason
     @PutMapping("/{orderId}/cancel")
     public Order cancelOrder(
             @PathVariable Long orderId,
-            @RequestParam Long staffId,
-            @RequestParam String reason) {
+            @RequestParam String reason,
+            Authentication authentication) {
+        User staff = requireStaff(authentication);
         // TODO: Log cancellation reason
-        return orderService.cancelOrder(orderId, staffId);
+        return orderService.cancelOrder(orderId, staff.getId());
+    }
+
+    private User requireStaff(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User user) {
+            return user;
+        }
+        throw new RuntimeException("Unauthorized");
+    }
+
+    private void verifyRestaurantAccess(User staff, Long restaurantId) {
+        if (staff.getRestaurant() == null ||
+                !restaurantId.equals(staff.getRestaurant().getId())) {
+            throw new RuntimeException("Not your restaurant");
+        }
     }
 }

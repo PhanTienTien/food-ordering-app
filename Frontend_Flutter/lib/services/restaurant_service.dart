@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/restaurant.dart';
 import 'dio_client.dart';
 
@@ -12,7 +13,7 @@ class RestaurantService {
       final List<dynamic> data = response.data;
       return data.map((json) => Restaurant.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -23,7 +24,7 @@ class RestaurantService {
       final List<dynamic> data = response.data;
       return data.map((json) => Restaurant.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -44,7 +45,7 @@ class RestaurantService {
       );
       return List<Map<String, dynamic>>.from(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -59,9 +60,13 @@ class RestaurantService {
         '/restaurants/$restaurantId/shipping-fee',
         queryParameters: {'userLat': userLat, 'userLon': userLon},
       );
-      return response.data as double;
+      final value = response.data;
+      if (value is num) {
+        return value.toDouble();
+      }
+      throw const FormatException('Invalid shipping fee response');
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -71,18 +76,7 @@ class RestaurantService {
       final response = await _dio.get('/restaurants/$id');
       return Restaurant.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Lỗi server: ${e.response?.statusCode}';
-    }
-    return 'Không thể kết nối đến server';
   }
 }

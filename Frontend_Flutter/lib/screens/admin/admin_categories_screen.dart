@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../constants/colors.dart';
 import '../../models/category.dart';
 import '../../providers/admin_provider.dart';
+import '../../widgets/admin_drawer.dart';
 
 class AdminCategoriesScreen extends ConsumerStatefulWidget {
   const AdminCategoriesScreen({super.key});
@@ -27,6 +28,7 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: const AdminDrawer(currentRoute: '/admin/categories'),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

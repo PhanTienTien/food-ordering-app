@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/notification_item.dart';
 import 'dio_client.dart';
 
@@ -11,7 +12,7 @@ class NotificationService {
       final List<dynamic> data = response.data;
       return data.map((json) => AppNotification.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -21,7 +22,7 @@ class NotificationService {
       final List<dynamic> data = response.data;
       return data.map((json) => AppNotification.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -32,7 +33,7 @@ class NotificationService {
       );
       return (response.data as num).toInt();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -44,7 +45,7 @@ class NotificationService {
       );
       return AppNotification.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -52,7 +53,7 @@ class NotificationService {
     try {
       await _dio.put('/notifications/user/$userId/read-all');
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -60,18 +61,7 @@ class NotificationService {
     try {
       await _dio.delete('/notifications/$id');
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Lỗi server: ${e.response?.statusCode}';
-    }
-    return 'Không thể kết nối đến server';
   }
 }

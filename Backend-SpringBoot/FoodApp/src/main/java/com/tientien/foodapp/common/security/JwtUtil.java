@@ -24,6 +24,10 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(user.getId().toString())
                 .claim("role", user.getRole().name())
+                .claim(
+                        "restaurantId",
+                        user.getRestaurant() != null ? user.getRestaurant().getId() : null
+                )
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(key)

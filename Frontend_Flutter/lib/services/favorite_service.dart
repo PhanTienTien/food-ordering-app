@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/favorite_item.dart';
 import 'dio_client.dart';
 
@@ -11,7 +12,7 @@ class FavoriteService {
       final List<dynamic> data = response.data;
       return data.map((json) => FavoriteItem.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -22,7 +23,7 @@ class FavoriteService {
         queryParameters: {'userId': userId, 'menuItemId': menuItemId},
       );
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -33,7 +34,7 @@ class FavoriteService {
         queryParameters: {'userId': userId, 'menuItemId': menuItemId},
       );
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -51,16 +52,5 @@ class FavoriteService {
 
   Future<void> removeFavoriteById(int userId, int menuItemId) async {
     await removeFavorite(userId, menuItemId);
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Lỗi server: ${e.response?.statusCode}';
-    }
-    return 'Không thể kết nối đến server';
   }
 }

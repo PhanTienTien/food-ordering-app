@@ -56,7 +56,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final restaurantState = ref.watch(restaurantProvider);
     final menuState = ref.watch(menuItemProvider);
-    final selectedRestaurantId = menuState.selectedRestaurantId;
 
     return Scaffold(
       backgroundColor: AppColors.background,

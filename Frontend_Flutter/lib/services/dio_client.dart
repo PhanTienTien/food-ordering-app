@@ -25,7 +25,8 @@ class DioClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await TokenStorage.getToken();
-          if (token != null && token.isNotEmpty) {
+          final isAuthRequest = options.path.startsWith('/auth/');
+          if (!isAuthRequest && token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
           if (kDebugMode) {
@@ -41,7 +42,9 @@ class DioClient {
         },
         onError: (error, handler) {
           if (kDebugMode) {
-            debugPrint('Error: ${error.response?.statusCode} ${error.message}');
+            debugPrint(
+              'Error: ${error.response?.statusCode} ${error.message} ${error.response?.data}',
+            );
           }
           handler.next(error);
         },
@@ -56,14 +59,14 @@ class DioClient {
     }
 
     if (kIsWeb) {
-      return 'http://localhost:8080/api';
+      return 'http://localhost:8081/api';
     }
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'http://10.0.2.2:8080/api';
+        return 'http://10.0.2.2:8081/api';
       default:
-        return 'http://localhost:8080/api';
+        return 'http://localhost:8081/api';
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/address.dart';
 import 'dio_client.dart';
 
@@ -12,7 +13,7 @@ class AddressService {
           .map((json) => Address.fromJson(json))
           .toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -21,7 +22,7 @@ class AddressService {
       final response = await _dio.get('/addresses/user/$userId/default');
       return Address.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -55,7 +56,7 @@ class AddressService {
       );
       return Address.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -88,7 +89,7 @@ class AddressService {
       );
       return Address.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -99,7 +100,7 @@ class AddressService {
         queryParameters: {'userId': userId},
       );
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -107,18 +108,7 @@ class AddressService {
     try {
       await _dio.delete('/addresses/$id');
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Lỗi server: ${e.response?.statusCode}';
-    }
-    return 'Không thể kết nối đến server';
   }
 }

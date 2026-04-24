@@ -15,6 +15,7 @@ class AuthState {
   final bool isLoading;
   final bool isAuthenticated;
   final int? userId;
+  final int? restaurantId;
   final String? role;
   final User? user;
   final String? error;
@@ -24,6 +25,7 @@ class AuthState {
     this.isLoading = false,
     this.isAuthenticated = false,
     this.userId,
+    this.restaurantId,
     this.role,
     this.user,
     this.error,
@@ -34,6 +36,7 @@ class AuthState {
     bool? isLoading,
     bool? isAuthenticated,
     int? userId,
+    int? restaurantId,
     String? role,
     User? user,
     Object? error = _unset,
@@ -43,6 +46,7 @@ class AuthState {
       isLoading: isLoading ?? this.isLoading,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       userId: userId ?? this.userId,
+      restaurantId: restaurantId ?? this.restaurantId,
       role: role ?? this.role,
       user: user ?? this.user,
       error: identical(error, _unset) ? this.error : error as String?,
@@ -58,18 +62,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> _bootstrap() async {
-    try {
-      final isLoggedIn = await _authService.isLoggedIn();
-      if (isLoggedIn) {
-        state = state.copyWith(
-          isAuthenticated: true,
-          userId: await TokenStorage.getUserId(),
-          role: await TokenStorage.getUserRole(),
-        );
-      }
-    } finally {
-      state = state.copyWith(isInitializing: false);
-    }
+    state = state.copyWith(isInitializing: false);
   }
 
   Future<bool> login(String email, String password) {
@@ -105,6 +98,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isLoading: false,
         isAuthenticated: true,
         userId: await TokenStorage.getUserId(),
+        restaurantId: await TokenStorage.getRestaurantId(),
         role: await TokenStorage.getUserRole(),
       );
       return true;
@@ -142,6 +136,10 @@ final currentUserProvider = Provider<User?>((ref) {
 
 final currentUserIdProvider = Provider<int?>((ref) {
   return ref.watch(authProvider).userId;
+});
+
+final currentRestaurantIdProvider = Provider<int?>((ref) {
+  return ref.watch(authProvider).restaurantId;
 });
 
 final currentUserRoleProvider = Provider<String?>((ref) {

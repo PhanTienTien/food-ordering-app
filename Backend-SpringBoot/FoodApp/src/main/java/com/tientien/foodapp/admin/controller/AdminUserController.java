@@ -4,6 +4,7 @@ import com.tientien.foodapp.common.enums.UserRole;
 import com.tientien.foodapp.user.entity.User;
 import com.tientien.foodapp.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 public class AdminUserController {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // Get all users
     @GetMapping
@@ -58,7 +60,7 @@ public class AdminUserController {
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword()); // Should hash password
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.STAFF);
         user.setStatus("ACTIVE");
         // TODO: Link to restaurant

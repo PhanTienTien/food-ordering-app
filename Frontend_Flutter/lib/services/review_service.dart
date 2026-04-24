@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/review.dart';
 import 'dio_client.dart';
 
@@ -12,7 +13,7 @@ class ReviewService {
           .map((json) => Review.fromJson(json))
           .toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -23,7 +24,7 @@ class ReviewService {
           .map((json) => Review.fromJson(json))
           .toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -32,9 +33,13 @@ class ReviewService {
       final response = await _dio.get(
         '/reviews/menu-item/$menuItemId/average-rating',
       );
-      return response.data as double;
+      final value = response.data;
+      if (value is num) {
+        return value.toDouble();
+      }
+      throw const FormatException('Invalid average rating response');
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -56,18 +61,7 @@ class ReviewService {
       );
       return Review.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Lỗi server: ${e.response?.statusCode}';
-    }
-    return 'Không thể kết nối đến server';
   }
 }

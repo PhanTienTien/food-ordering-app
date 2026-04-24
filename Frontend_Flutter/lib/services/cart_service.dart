@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/cart.dart';
 import 'dio_client.dart';
 import '../utils/token_storage.dart';
@@ -12,8 +13,7 @@ class CartService {
     required int quantity,
   }) async {
     try {
-      final userId = await TokenStorage.getUserId();
-      if (userId == null) throw Exception('User not logged in');
+      final userId = await TokenStorage.requireUserId();
 
       final response = await _dio.post(
         '/cart/add',
@@ -26,7 +26,7 @@ class CartService {
 
       return Cart.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -36,8 +36,7 @@ class CartService {
     required int quantity,
   }) async {
     try {
-      final userId = await TokenStorage.getUserId();
-      if (userId == null) throw Exception('User not logged in');
+      final userId = await TokenStorage.requireUserId();
 
       final response = await _dio.put(
         '/cart/update',
@@ -50,15 +49,14 @@ class CartService {
 
       return Cart.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
   // Get cart
   Future<Cart?> getCart() async {
     try {
-      final userId = await TokenStorage.getUserId();
-      if (userId == null) throw Exception('User not logged in');
+      final userId = await TokenStorage.requireUserId();
 
       final response = await _dio.get(
         '/cart',
@@ -70,30 +68,18 @@ class CartService {
       if (e.response?.statusCode == 404) {
         return null; // Cart empty/not found
       }
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
   // Clear cart
   Future<void> clearCart() async {
     try {
-      final userId = await TokenStorage.getUserId();
-      if (userId == null) throw Exception('User not logged in');
+      final userId = await TokenStorage.requireUserId();
 
       await _dio.delete('/cart/clear', queryParameters: {'userId': userId});
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Lỗi server: ${e.response?.statusCode}';
-    }
-    return 'Không thể kết nối đến server';
   }
 }

@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../constants/colors.dart';
 import '../../models/user.dart';
 import '../../providers/admin_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../utils/role_utils.dart';
+import '../../widgets/admin_drawer.dart';
 
 class AdminUsersScreen extends ConsumerStatefulWidget {
   const AdminUsersScreen({super.key});
@@ -25,13 +28,34 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(adminUsersProvider);
+    final role = normalizeRole(ref.watch(authProvider).role);
+    final isAdmin = role == 'ADMIN';
 
     final filteredUsers = _selectedRole == 'ALL'
         ? state.users
         : state.users.where((u) => u.role == _selectedRole).toList();
 
+    if (!isAdmin) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        drawer: const AdminDrawer(currentRoute: '/admin/users'),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: const Text(
+            'Quan ly Users',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          ),
+        ),
+        body: const Center(
+          child: Text('Tai khoan STAFF khong duoc phep quan ly nguoi dung'),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: const AdminDrawer(currentRoute: '/admin/users'),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

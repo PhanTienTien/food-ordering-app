@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../constants/colors.dart';
 import '../../models/restaurant.dart';
 import '../../providers/admin_provider.dart';
+import '../../widgets/admin_drawer.dart';
 
 class AdminRestaurantsScreen extends ConsumerStatefulWidget {
   const AdminRestaurantsScreen({super.key});
@@ -28,6 +29,7 @@ class _AdminRestaurantsScreenState
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: const AdminDrawer(currentRoute: '/admin/restaurants'),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

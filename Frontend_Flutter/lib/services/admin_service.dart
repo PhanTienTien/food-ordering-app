@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/user.dart';
 import '../models/restaurant.dart';
 import '../models/category.dart';
@@ -16,7 +17,7 @@ class AdminService {
       final List<dynamic> data = response.data;
       return data.map((json) => Restaurant.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -27,7 +28,7 @@ class AdminService {
       final List<dynamic> data = response.data;
       return data.map((json) => Restaurant.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -37,7 +38,7 @@ class AdminService {
       final response = await _dio.put('/admin/restaurants/$id/approve');
       return Restaurant.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -47,7 +48,7 @@ class AdminService {
       final response = await _dio.put('/admin/restaurants/$id/reject');
       return Restaurant.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -57,7 +58,7 @@ class AdminService {
       final response = await _dio.put('/admin/restaurants/$id/lock');
       return Restaurant.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -67,7 +68,7 @@ class AdminService {
       final response = await _dio.put('/admin/restaurants/$id/unlock');
       return Restaurant.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -76,7 +77,7 @@ class AdminService {
     try {
       await _dio.delete('/admin/restaurants/$id');
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -89,7 +90,7 @@ class AdminService {
       final List<dynamic> data = response.data;
       return data.map((json) => User.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -100,7 +101,7 @@ class AdminService {
       final List<dynamic> data = response.data;
       return data.map((json) => User.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -110,7 +111,7 @@ class AdminService {
       final response = await _dio.put('/admin/users/$id/lock');
       return User.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -120,7 +121,7 @@ class AdminService {
       final response = await _dio.put('/admin/users/$id/unlock');
       return User.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -129,7 +130,7 @@ class AdminService {
     try {
       await _dio.delete('/admin/users/$id');
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -151,7 +152,7 @@ class AdminService {
       );
       return User.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -164,7 +165,7 @@ class AdminService {
       final List<dynamic> data = response.data;
       return data.map((json) => Category.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -177,7 +178,7 @@ class AdminService {
       );
       return Category.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -190,7 +191,7 @@ class AdminService {
       );
       return Category.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -199,7 +200,7 @@ class AdminService {
     try {
       await _dio.delete('/admin/categories/$id');
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -211,7 +212,7 @@ class AdminService {
       final response = await _dio.get('/admin/reports/dashboard');
       return response.data;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -227,7 +228,7 @@ class AdminService {
       );
       return response.data;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -240,7 +241,7 @@ class AdminService {
       );
       return response.data as List;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -250,18 +251,7 @@ class AdminService {
       final response = await _dio.get('/admin/reports/order-stats');
       return response.data;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Lỗi server: ${e.response?.statusCode}';
-    }
-    return 'Không thể kết nối đến server';
   }
 }

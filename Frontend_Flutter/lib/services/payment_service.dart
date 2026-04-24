@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/order.dart';
 import 'dio_client.dart';
 
@@ -16,18 +17,7 @@ class PaymentService {
       );
       return Order.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Loi server: ${e.response?.statusCode}';
-    }
-    return 'Khong the ket noi den server';
   }
 }

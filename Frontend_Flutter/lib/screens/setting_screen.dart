@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/colors.dart';
 import '../providers/auth_provider.dart';
-import 'login_screen.dart';
+import '../utils/auth_navigation.dart';
 import 'notifications_screen.dart';
 
 class SettingScreen extends ConsumerWidget {
@@ -17,86 +17,81 @@ class SettingScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text('Settings', style: TextStyle(color: Colors.black)),
-        centerTitle: true,
-      ),
-      body: Padding(
+      appBar: AppBar(title: const Text('Settings')),
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black12, blurRadius: 5),
-                ],
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColors.textDark, Color(0xFF343434)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150'),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  radius: 32,
+                  backgroundImage: NetworkImage('https://i.pravatar.cc/150'),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         displayName?.isNotEmpty == true
                             ? displayName!
                             : 'User ${authState.userId ?? ''}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
+                      const SizedBox(height: 6),
                       Text(
                         displayEmail?.isNotEmpty == true
                             ? displayEmail!
                             : authState.role ?? 'CUSTOMER',
-                        style: const TextStyle(color: Colors.grey),
+                        style: const TextStyle(color: Colors.white70),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            _buildItem(Icons.person, 'Profile'),
-            _buildItem(Icons.location_on, 'Address'),
-            _buildItem(Icons.payment, 'Payment'),
-            _buildItem(
-              Icons.notifications,
-              'Notification',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const NotificationsScreen(),
-                  ),
-                );
-              },
-            ),
-            _buildItem(Icons.lock, 'Change Password'),
-            const SizedBox(height: 20),
-            _buildItem(
-              Icons.logout,
-              'Logout',
-              isLogout: true,
-              onTap: () async {
-                await ref.read(authProvider.notifier).logout();
-                if (!context.mounted) return;
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+          _buildItem(Icons.person_outline, 'Profile'),
+          _buildItem(Icons.location_on_outlined, 'Address'),
+          _buildItem(Icons.payments_outlined, 'Payment'),
+          _buildItem(
+            Icons.notifications_none,
+            'Notification',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NotificationsScreen(),
+                ),
+              );
+            },
+          ),
+          _buildItem(Icons.lock_outline, 'Change Password'),
+          const SizedBox(height: 8),
+          _buildItem(
+            Icons.logout,
+            'Logout',
+            isLogout: true,
+            onTap: () async {
+              await logoutAndNavigateToLogin(context, ref);
+            },
+          ),
+        ],
       ),
     );
   }
@@ -107,16 +102,30 @@ class SettingScreen extends ConsumerWidget {
     bool isLogout = false,
     VoidCallback? onTap,
   }) {
+    final iconColor = isLogout ? AppColors.danger : AppColors.primary;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.divider),
       ),
       child: ListTile(
-        leading: Icon(icon, color: isLogout ? Colors.red : AppColors.primary),
-        title: Text(title),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: iconColor.withAlpha(24),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(icon, color: iconColor),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,
       ),

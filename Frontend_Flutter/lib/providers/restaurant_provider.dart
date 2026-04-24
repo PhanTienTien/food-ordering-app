@@ -70,15 +70,26 @@ class RestaurantNotifier extends StateNotifier<RestaurantListState> {
         radiusKm: radiusKm,
       );
 
-      final restaurants = nearbyData.map((data) {
-        final restaurant = Restaurant.fromJson(
-          data['restaurant'] as Map<String, dynamic>,
-        );
-        return restaurant.copyWith(
-          distanceKm: (data['distanceKm'] as num).toDouble(),
-          shippingFee: (data['shippingFee'] as num).toDouble(),
-        );
-      }).toList();
+      final restaurants = nearbyData
+          .map((data) {
+            final rawRestaurant = data['restaurant'];
+            final rawDistance = data['distanceKm'];
+            final rawShippingFee = data['shippingFee'];
+
+            if (rawRestaurant is! Map<String, dynamic> ||
+                rawDistance is! num ||
+                rawShippingFee is! num) {
+              return null;
+            }
+
+            final restaurant = Restaurant.fromJson(rawRestaurant);
+            return restaurant.copyWith(
+              distanceKm: rawDistance.toDouble(),
+              shippingFee: rawShippingFee.toDouble(),
+            );
+          })
+          .whereType<Restaurant>()
+          .toList();
 
       state = state.copyWith(isLoading: false, restaurants: restaurants);
     } catch (e) {

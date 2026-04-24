@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../utils/error_utils.dart';
 import '../models/menu_item.dart';
 import 'dio_client.dart';
 
@@ -12,7 +13,7 @@ class MenuItemService {
       final List<dynamic> data = response.data;
       return data.map((json) => MenuItem.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -23,7 +24,7 @@ class MenuItemService {
       final List<dynamic> data = response.data;
       return data.map((json) => MenuItem.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -34,7 +35,7 @@ class MenuItemService {
       final List<dynamic> data = response.data;
       return data.map((json) => MenuItem.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -48,7 +49,7 @@ class MenuItemService {
       final List<dynamic> data = response.data;
       return data.map((json) => MenuItem.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -75,7 +76,7 @@ class MenuItemService {
       final List<dynamic> data = response.data;
       return data.map((json) => MenuItem.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -86,7 +87,7 @@ class MenuItemService {
       final List<dynamic> data = response.data;
       return data.map((json) => MenuItem.fromJson(json)).toList();
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
   }
 
@@ -96,18 +97,7 @@ class MenuItemService {
       final response = await _dio.get('/menu-items/$id');
       return MenuItem.fromJson(response.data);
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw ErrorUtils.message(e);
     }
-  }
-
-  String _handleError(DioException e) {
-    if (e.response != null) {
-      final data = e.response?.data;
-      if (data != null && data['message'] != null) {
-        return data['message'];
-      }
-      return 'Lỗi server: ${e.response?.statusCode}';
-    }
-    return 'Không thể kết nối đến server';
   }
 }
