@@ -39,6 +39,19 @@ class MenuItemService {
     }
   }
 
+  // Get menu items by category and restaurant
+  Future<List<MenuItem>> getMenuItemsByCategoryAndRestaurant(
+      int categoryId, int restaurantId) async {
+    try {
+      final response = await _dio
+          .get('/menu-items/category/$categoryId/restaurant/$restaurantId');
+      final List<dynamic> data = response.data;
+      return data.map((json) => MenuItem.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw ErrorUtils.message(e);
+    }
+  }
+
   // Search menu items
   Future<List<MenuItem>> searchMenuItems(String keyword) async {
     try {

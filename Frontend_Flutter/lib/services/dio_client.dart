@@ -59,14 +59,14 @@ class DioClient {
     }
 
     if (kIsWeb) {
-      return 'http://localhost:8081/api';
+      return 'http://localhost:8082/api';
     }
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'http://10.0.2.2:8081/api';
+        return 'http://10.0.2.2:8082/api';
       default:
-        return 'http://localhost:8081/api';
+        return 'http://localhost:8082/api';
     }
   }
 }

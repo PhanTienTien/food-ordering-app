@@ -81,6 +81,39 @@ class AdminService {
     }
   }
 
+  // Create restaurant
+  Future<Restaurant> createRestaurant({
+    required String name,
+    required String address,
+    String? phone,
+    String? image,
+    String? description,
+    double? latitude,
+    double? longitude,
+    double? deliveryRadius,
+    double? commissionRate,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/admin/restaurants',
+        data: {
+          'name': name,
+          'address': address,
+          if (phone != null) 'phone': phone,
+          if (image != null) 'image': image,
+          if (description != null) 'description': description,
+          if (latitude != null) 'latitude': latitude,
+          if (longitude != null) 'longitude': longitude,
+          if (deliveryRadius != null) 'deliveryRadius': deliveryRadius,
+          if (commissionRate != null) 'commissionRate': commissionRate,
+        },
+      );
+      return Restaurant.fromJson(response.data);
+    } on DioException catch (e) {
+      throw ErrorUtils.message(e);
+    }
+  }
+
   // ==================== USER MANAGEMENT ====================
 
   // Get all users
@@ -170,11 +203,14 @@ class AdminService {
   }
 
   // Create category
-  Future<Category> createCategory(String name) async {
+  Future<Category> createCategory(String name, {String? image}) async {
     try {
       final response = await _dio.post(
         '/admin/categories',
-        data: {'name': name},
+        data: {
+          'name': name,
+          if (image != null) 'image': image,
+        },
       );
       return Category.fromJson(response.data);
     } on DioException catch (e) {
@@ -183,11 +219,14 @@ class AdminService {
   }
 
   // Update category
-  Future<Category> updateCategory(int id, String name) async {
+  Future<Category> updateCategory(int id, String name, {String? image}) async {
     try {
       final response = await _dio.put(
         '/admin/categories/$id',
-        data: {'name': name},
+        data: {
+          'name': name,
+          if (image != null) 'image': image,
+        },
       );
       return Category.fromJson(response.data);
     } on DioException catch (e) {

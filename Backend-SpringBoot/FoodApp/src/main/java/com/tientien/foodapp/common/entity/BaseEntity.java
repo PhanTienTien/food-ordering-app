@@ -24,7 +24,7 @@ public abstract class BaseEntity {
     @Column(name = "created_by", updatable = false)
     private String createdBy;
 
-    @Column (name = "update_by")
+    @Column(name = "updated_by")
     private String updatedBy;
 
     @PrePersist

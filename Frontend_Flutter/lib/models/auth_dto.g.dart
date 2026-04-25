@@ -38,7 +38,15 @@ Map<String, dynamic> _$$AuthResponseImplToJson(_$AuthResponseImpl instance) =>
     <String, dynamic>{'token': instance.token};
 
 _$LoginResponseImpl _$$LoginResponseImplFromJson(Map<String, dynamic> json) =>
-    _$LoginResponseImpl(token: json['token'] as String?);
+    _$LoginResponseImpl(
+      token: json['token'] as String?,
+      message: json['message'] as String?,
+      role: json['role'] as String?,
+    );
 
 Map<String, dynamic> _$$LoginResponseImplToJson(_$LoginResponseImpl instance) =>
-    <String, dynamic>{'token': instance.token};
+    <String, dynamic>{
+      'token': instance.token,
+      'message': instance.message,
+      'role': instance.role,
+    };

@@ -27,9 +27,12 @@ mixin _$Restaurant {
   String? get status => throw _privateConstructorUsedError;
   bool? get isOpen => throw _privateConstructorUsedError;
   String? get image => throw _privateConstructorUsedError;
+  String? get phone => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
   double? get latitude => throw _privateConstructorUsedError;
   double? get longitude => throw _privateConstructorUsedError;
   double? get deliveryRadius => throw _privateConstructorUsedError;
+  double? get commissionRate => throw _privateConstructorUsedError;
   double? get distanceKm => throw _privateConstructorUsedError;
   double? get shippingFee => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -59,9 +62,12 @@ abstract class $RestaurantCopyWith<$Res> {
     String? status,
     bool? isOpen,
     String? image,
+    String? phone,
+    String? description,
     double? latitude,
     double? longitude,
     double? deliveryRadius,
+    double? commissionRate,
     double? distanceKm,
     double? shippingFee,
     DateTime? createdAt,
@@ -90,9 +96,12 @@ class _$RestaurantCopyWithImpl<$Res, $Val extends Restaurant>
     Object? status = freezed,
     Object? isOpen = freezed,
     Object? image = freezed,
+    Object? phone = freezed,
+    Object? description = freezed,
     Object? latitude = freezed,
     Object? longitude = freezed,
     Object? deliveryRadius = freezed,
+    Object? commissionRate = freezed,
     Object? distanceKm = freezed,
     Object? shippingFee = freezed,
     Object? createdAt = freezed,
@@ -124,6 +133,14 @@ class _$RestaurantCopyWithImpl<$Res, $Val extends Restaurant>
                 ? _value.image
                 : image // ignore: cast_nullable_to_non_nullable
                       as String?,
+            phone: freezed == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
             latitude: freezed == latitude
                 ? _value.latitude
                 : latitude // ignore: cast_nullable_to_non_nullable
@@ -135,6 +152,10 @@ class _$RestaurantCopyWithImpl<$Res, $Val extends Restaurant>
             deliveryRadius: freezed == deliveryRadius
                 ? _value.deliveryRadius
                 : deliveryRadius // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            commissionRate: freezed == commissionRate
+                ? _value.commissionRate
+                : commissionRate // ignore: cast_nullable_to_non_nullable
                       as double?,
             distanceKm: freezed == distanceKm
                 ? _value.distanceKm
@@ -174,9 +195,12 @@ abstract class _$$RestaurantImplCopyWith<$Res>
     String? status,
     bool? isOpen,
     String? image,
+    String? phone,
+    String? description,
     double? latitude,
     double? longitude,
     double? deliveryRadius,
+    double? commissionRate,
     double? distanceKm,
     double? shippingFee,
     DateTime? createdAt,
@@ -204,9 +228,12 @@ class __$$RestaurantImplCopyWithImpl<$Res>
     Object? status = freezed,
     Object? isOpen = freezed,
     Object? image = freezed,
+    Object? phone = freezed,
+    Object? description = freezed,
     Object? latitude = freezed,
     Object? longitude = freezed,
     Object? deliveryRadius = freezed,
+    Object? commissionRate = freezed,
     Object? distanceKm = freezed,
     Object? shippingFee = freezed,
     Object? createdAt = freezed,
@@ -238,6 +265,14 @@ class __$$RestaurantImplCopyWithImpl<$Res>
             ? _value.image
             : image // ignore: cast_nullable_to_non_nullable
                   as String?,
+        phone: freezed == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
         latitude: freezed == latitude
             ? _value.latitude
             : latitude // ignore: cast_nullable_to_non_nullable
@@ -249,6 +284,10 @@ class __$$RestaurantImplCopyWithImpl<$Res>
         deliveryRadius: freezed == deliveryRadius
             ? _value.deliveryRadius
             : deliveryRadius // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        commissionRate: freezed == commissionRate
+            ? _value.commissionRate
+            : commissionRate // ignore: cast_nullable_to_non_nullable
                   as double?,
         distanceKm: freezed == distanceKm
             ? _value.distanceKm
@@ -281,9 +320,12 @@ class _$RestaurantImpl implements _Restaurant {
     this.status,
     this.isOpen,
     this.image,
+    this.phone,
+    this.description,
     this.latitude,
     this.longitude,
     this.deliveryRadius,
+    this.commissionRate,
     this.distanceKm,
     this.shippingFee,
     this.createdAt,
@@ -306,11 +348,17 @@ class _$RestaurantImpl implements _Restaurant {
   @override
   final String? image;
   @override
+  final String? phone;
+  @override
+  final String? description;
+  @override
   final double? latitude;
   @override
   final double? longitude;
   @override
   final double? deliveryRadius;
+  @override
+  final double? commissionRate;
   @override
   final double? distanceKm;
   @override
@@ -322,7 +370,7 @@ class _$RestaurantImpl implements _Restaurant {
 
   @override
   String toString() {
-    return 'Restaurant(id: $id, name: $name, address: $address, status: $status, isOpen: $isOpen, image: $image, latitude: $latitude, longitude: $longitude, deliveryRadius: $deliveryRadius, distanceKm: $distanceKm, shippingFee: $shippingFee, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Restaurant(id: $id, name: $name, address: $address, status: $status, isOpen: $isOpen, image: $image, phone: $phone, description: $description, latitude: $latitude, longitude: $longitude, deliveryRadius: $deliveryRadius, commissionRate: $commissionRate, distanceKm: $distanceKm, shippingFee: $shippingFee, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -336,12 +384,17 @@ class _$RestaurantImpl implements _Restaurant {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.isOpen, isOpen) || other.isOpen == isOpen) &&
             (identical(other.image, image) || other.image == image) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
             (identical(other.latitude, latitude) ||
                 other.latitude == latitude) &&
             (identical(other.longitude, longitude) ||
                 other.longitude == longitude) &&
             (identical(other.deliveryRadius, deliveryRadius) ||
                 other.deliveryRadius == deliveryRadius) &&
+            (identical(other.commissionRate, commissionRate) ||
+                other.commissionRate == commissionRate) &&
             (identical(other.distanceKm, distanceKm) ||
                 other.distanceKm == distanceKm) &&
             (identical(other.shippingFee, shippingFee) ||
@@ -362,9 +415,12 @@ class _$RestaurantImpl implements _Restaurant {
     status,
     isOpen,
     image,
+    phone,
+    description,
     latitude,
     longitude,
     deliveryRadius,
+    commissionRate,
     distanceKm,
     shippingFee,
     createdAt,
@@ -393,9 +449,12 @@ abstract class _Restaurant implements Restaurant {
     final String? status,
     final bool? isOpen,
     final String? image,
+    final String? phone,
+    final String? description,
     final double? latitude,
     final double? longitude,
     final double? deliveryRadius,
+    final double? commissionRate,
     final double? distanceKm,
     final double? shippingFee,
     final DateTime? createdAt,
@@ -418,11 +477,17 @@ abstract class _Restaurant implements Restaurant {
   @override
   String? get image;
   @override
+  String? get phone;
+  @override
+  String? get description;
+  @override
   double? get latitude;
   @override
   double? get longitude;
   @override
   double? get deliveryRadius;
+  @override
+  double? get commissionRate;
   @override
   double? get distanceKm;
   @override

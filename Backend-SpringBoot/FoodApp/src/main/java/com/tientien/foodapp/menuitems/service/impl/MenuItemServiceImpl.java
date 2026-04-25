@@ -1,10 +1,14 @@
 package com.tientien.foodapp.menuitems.service.impl;
 
+import com.tientien.foodapp.category.entity.Category;
+import com.tientien.foodapp.category.repository.CategoryRepository;
 import com.tientien.foodapp.common.enums.MenuItemStatus;
 import com.tientien.foodapp.common.exception.NotFoundException;
 import com.tientien.foodapp.menuitems.entity.MenuItem;
 import com.tientien.foodapp.menuitems.repository.MenuItemRepository;
 import com.tientien.foodapp.menuitems.service.MenuItemService;
+import com.tientien.foodapp.restaurant.entity.Restaurant;
+import com.tientien.foodapp.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +19,8 @@ import java.util.List;
 public class MenuItemServiceImpl implements MenuItemService {
 
     private final MenuItemRepository menuItemRepository;
+    private final RestaurantRepository restaurantRepository;
+    private final CategoryRepository categoryRepository;
 
     @Override
     public List<MenuItem> getAllMenuItems() {
@@ -35,6 +41,11 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Override
     public List<MenuItem> getMenuItemsByCategory(Long categoryId) {
         return menuItemRepository.findByCategoryId(categoryId);
+    }
+
+    @Override
+    public List<MenuItem> getMenuItemsByCategoryAndRestaurant(Long categoryId, Long restaurantId) {
+        return menuItemRepository.findByCategoryIdAndRestaurantId(categoryId, restaurantId);
     }
 
     @Override
@@ -97,7 +108,19 @@ public class MenuItemServiceImpl implements MenuItemService {
         item.setDiscountPrice(request.discountPrice);
         item.setStatus(MenuItemStatus.AVAILABLE);
         item.setImage(request.image);
-        // TODO: Set restaurant and category from request
+
+        if (request.restaurantId != null) {
+            Restaurant restaurant = restaurantRepository.findById(request.restaurantId)
+                    .orElseThrow(() -> new NotFoundException("Restaurant not found with id: " + request.restaurantId));
+            item.setRestaurant(restaurant);
+        }
+
+        if (request.categoryId != null) {
+            Category category = categoryRepository.findById(request.categoryId)
+                    .orElseThrow(() -> new NotFoundException("Category not found with id: " + request.categoryId));
+            item.setCategory(category);
+        }
+
         return menuItemRepository.save(item);
     }
 

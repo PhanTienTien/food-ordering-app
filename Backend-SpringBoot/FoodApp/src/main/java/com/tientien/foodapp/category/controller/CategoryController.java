@@ -19,6 +19,11 @@ public class CategoryController {
         return categoryRepository.findAll();
     }
 
+    @GetMapping("/restaurant/{restaurantId}")
+    public List<Category> getCategoriesByRestaurant(@PathVariable Long restaurantId) {
+        return categoryRepository.findByRestaurantId(restaurantId);
+    }
+
     @GetMapping("/{id}")
     public Category getCategoryById(@PathVariable Long id) {
         return categoryRepository.findById(id)

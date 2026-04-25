@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/auth_dto.dart';
@@ -62,7 +65,25 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> _bootstrap() async {
-    state = state.copyWith(isInitializing: false);
+    final token = await TokenStorage.getToken();
+    final userId = await TokenStorage.getUserId();
+    final role = await TokenStorage.getUserRole();
+
+    if (kDebugMode) {
+      debugPrint('[Auth] Bootstrap: token=${token != null && token.isNotEmpty ? 'EXISTS' : 'NONE'}, userId=$userId, role=$role');
+    }
+
+    if (token != null && token.isNotEmpty) {
+      state = state.copyWith(
+        isInitializing: false,
+        isAuthenticated: true,
+        userId: userId,
+        restaurantId: await TokenStorage.getRestaurantId(),
+        role: role,
+      );
+    } else {
+      state = state.copyWith(isInitializing: false);
+    }
   }
 
   Future<bool> login(String email, String password) {
@@ -94,12 +115,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
         return false;
       }
 
+      final claims = _decodeJwt(token);
+      final userId = _parseInt(claims?['sub']);
+      final role = claims?['role']?.toString();
+      final restaurantId = _parseInt(claims?['restaurantId']);
+
+      if (kDebugMode) {
+        debugPrint('[Auth] Login success: userId=$userId, role=$role');
+      }
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
-        userId: await TokenStorage.getUserId(),
-        restaurantId: await TokenStorage.getRestaurantId(),
-        role: await TokenStorage.getUserRole(),
+        userId: userId,
+        restaurantId: restaurantId,
+        role: role,
       );
       return true;
     } catch (error) {
@@ -109,6 +139,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return false;
     }
+  }
+
+  Map<String, dynamic>? _decodeJwt(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+    try {
+      final payload = base64Url.normalize(parts[1]);
+      final decoded = utf8.decode(base64Url.decode(payload));
+      return jsonDecode(decoded) as Map<String, dynamic>?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int? _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
   }
 
   Future<void> logout() async {

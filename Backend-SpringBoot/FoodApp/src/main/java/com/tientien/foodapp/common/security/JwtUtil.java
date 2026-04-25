@@ -35,9 +35,12 @@ public class JwtUtil {
     }
 
     public Long extractUserId(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(
+                Decoders.BASE64.decode(SECRET)
+        );
         return Long.parseLong(
                 Jwts.parser()
-                        .setSigningKey(SECRET)
+                        .setSigningKey(key)
                         .parseClaimsJws(token)
                         .getBody()
                         .getSubject()

@@ -51,6 +51,18 @@ class CategoryNotifier extends StateNotifier<CategoryListState> {
     }
   }
 
+  // Load categories by restaurant
+  Future<void> loadCategoriesByRestaurant(int restaurantId) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final categories = await _categoryService.getCategoriesByRestaurant(restaurantId);
+      state = state.copyWith(isLoading: false, categories: categories);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
+    }
+  }
+
   // Clear error
   void clearError() {
     state = state.copyWith(error: null);

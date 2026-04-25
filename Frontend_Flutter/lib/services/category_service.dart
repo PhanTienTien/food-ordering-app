@@ -17,6 +17,17 @@ class CategoryService {
     }
   }
 
+  // Get categories by restaurant
+  Future<List<Category>> getCategoriesByRestaurant(int restaurantId) async {
+    try {
+      final response = await _dio.get('/categories/restaurant/$restaurantId');
+      final List<dynamic> data = response.data;
+      return data.map((json) => Category.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw ErrorUtils.message(e);
+    }
+  }
+
   // Get category by ID
   Future<Category> getCategoryById(int id) async {
     try {

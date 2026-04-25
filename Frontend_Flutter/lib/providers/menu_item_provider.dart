@@ -92,10 +92,20 @@ class MenuItemNotifier extends StateNotifier<MenuItemListState> {
         await loadMenuItems();
         return;
       }
-      final menuItems = await _menuItemService.getMenuItemsByCategory(
-        categoryId,
-      );
-      state = state.copyWith(isLoading: false, menuItems: menuItems);
+      // If restaurant is selected, filter by both category and restaurant
+      if (state.selectedRestaurantId != null) {
+        final menuItems = await _menuItemService
+            .getMenuItemsByCategoryAndRestaurant(
+              categoryId,
+              state.selectedRestaurantId!,
+            );
+        state = state.copyWith(isLoading: false, menuItems: menuItems);
+      } else {
+        final menuItems = await _menuItemService.getMenuItemsByCategory(
+          categoryId,
+        );
+        state = state.copyWith(isLoading: false, menuItems: menuItems);
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: ErrorUtils.message(e));
     }

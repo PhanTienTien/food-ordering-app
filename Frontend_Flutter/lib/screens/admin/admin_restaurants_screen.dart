@@ -102,6 +102,11 @@ class _AdminRestaurantsScreenState
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showCreateRestaurantDialog(),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
@@ -176,6 +181,122 @@ class _AdminRestaurantsScreenState
         context,
       ).showSnackBar(const SnackBar(content: Text('Đã mở khóa quán')));
     }
+  }
+
+  void _showCreateRestaurantDialog() {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController();
+    final addressController = TextEditingController();
+    final phoneController = TextEditingController();
+    final imageController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final latitudeController = TextEditingController();
+    final longitudeController = TextEditingController();
+    final deliveryRadiusController = TextEditingController(text: '10.0');
+    final commissionRateController = TextEditingController(text: '0.10');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tạo quán ăn mới'),
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Tên quán'),
+                  validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
+                ),
+                TextFormField(
+                  controller: addressController,
+                  decoration: const InputDecoration(labelText: 'Địa chỉ'),
+                  validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
+                ),
+                TextFormField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(labelText: 'Số điện thoại'),
+                  keyboardType: TextInputType.phone,
+                ),
+                TextFormField(
+                  controller: imageController,
+                  decoration: const InputDecoration(labelText: 'URL ảnh'),
+                ),
+                TextFormField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: 'Mô tả'),
+                  maxLines: 3,
+                ),
+                TextFormField(
+                  controller: latitudeController,
+                  decoration: const InputDecoration(labelText: 'Vĩ độ (Latitude)'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextFormField(
+                  controller: longitudeController,
+                  decoration: const InputDecoration(labelText: 'Kinh độ (Longitude)'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextFormField(
+                  controller: deliveryRadiusController,
+                  decoration: const InputDecoration(labelText: 'Bán kính giao hàng (km)'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextFormField(
+                  controller: commissionRateController,
+                  decoration: const InputDecoration(labelText: 'Tỷ lệ hoa hồng (0.10 = 10%)'),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (!(formKey.currentState?.validate() ?? false)) return;
+              Navigator.pop(context);
+              final success = await ref
+                  .read(adminRestaurantsProvider.notifier)
+                  .createRestaurant(
+                    name: nameController.text.trim(),
+                    address: addressController.text.trim(),
+                    phone: phoneController.text.trim().isEmpty
+                        ? null
+                        : phoneController.text.trim(),
+                    image: imageController.text.trim().isEmpty
+                        ? null
+                        : imageController.text.trim(),
+                    description: descriptionController.text.trim().isEmpty
+                        ? null
+                        : descriptionController.text.trim(),
+                    latitude: latitudeController.text.trim().isEmpty
+                        ? null
+                        : double.tryParse(latitudeController.text.trim()),
+                    longitude: longitudeController.text.trim().isEmpty
+                        ? null
+                        : double.tryParse(longitudeController.text.trim()),
+                    deliveryRadius: double.tryParse(deliveryRadiusController.text.trim()) ?? 10.0,
+                    commissionRate: double.tryParse(commissionRateController.text.trim()) ?? 0.10,
+                  );
+              if (!context.mounted) return;
+              if (success) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Đã tạo quán ăn')));
+              }
+            },
+            child: const Text('Lưu'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

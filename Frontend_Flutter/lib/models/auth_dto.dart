@@ -40,7 +40,11 @@ class AuthResponse with _$AuthResponse {
 // Login Response
 @freezed
 class LoginResponse with _$LoginResponse {
-  const factory LoginResponse({String? token}) = _LoginResponse;
+  const factory LoginResponse({
+    String? token,
+    String? message,
+    String? role,
+  }) = _LoginResponse;
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) =>
       _$LoginResponseFromJson(json);

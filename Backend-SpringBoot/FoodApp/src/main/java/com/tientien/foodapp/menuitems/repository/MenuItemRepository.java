@@ -15,6 +15,8 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     List<MenuItem> findByCategoryId(Long categoryId);
 
+    List<MenuItem> findByCategoryIdAndRestaurantId(Long categoryId, Long restaurantId);
+
     // Search by name (case insensitive)
     @Query("SELECT m FROM MenuItem m WHERE LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<MenuItem> searchByName(@Param("keyword") String keyword);

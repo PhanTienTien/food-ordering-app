@@ -38,6 +38,14 @@ public class MenuItemController {
         return menuItemService.getMenuItemsByCategory(categoryId);
     }
 
+    // Get menu items by category and restaurant
+    @GetMapping("/category/{categoryId}/restaurant/{restaurantId}")
+    public List<MenuItem> getMenuItemsByCategoryAndRestaurant(
+            @PathVariable Long categoryId,
+            @PathVariable Long restaurantId) {
+        return menuItemService.getMenuItemsByCategoryAndRestaurant(categoryId, restaurantId);
+    }
+
     // Search menu items by keyword
     @GetMapping("/search")
     public List<MenuItem> searchMenuItems(@RequestParam(required = false) String keyword) {

@@ -70,17 +70,31 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
 
   void _showCreateDialog() {
     final nameController = TextEditingController();
+    final imageController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Tạo danh mục mới'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Tên danh mục',
-            hintText: 'Nhập tên danh mục...',
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Tên danh mục',
+                hintText: 'Nhập tên danh mục...',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: imageController,
+              decoration: const InputDecoration(
+                labelText: 'URL ảnh',
+                hintText: 'Nhập URL ảnh danh mục...',
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -93,7 +107,12 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
                 Navigator.pop(context);
                 final success = await ref
                     .read(adminCategoriesProvider.notifier)
-                    .createCategory(nameController.text);
+                    .createCategory(
+                      nameController.text,
+                      image: imageController.text.trim().isEmpty
+                          ? null
+                          : imageController.text.trim(),
+                    );
                 if (!context.mounted) return;
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -111,14 +130,25 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
 
   void _showEditDialog(Category category) {
     final nameController = TextEditingController(text: category.name);
+    final imageController = TextEditingController(text: category.image ?? '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Sửa danh mục'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(labelText: 'Tên danh mục'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Tên danh mục'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: imageController,
+              decoration: const InputDecoration(labelText: 'URL ảnh'),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -131,7 +161,13 @@ class _AdminCategoriesScreenState extends ConsumerState<AdminCategoriesScreen> {
                 Navigator.pop(context);
                 final success = await ref
                     .read(adminCategoriesProvider.notifier)
-                    .updateCategory(category.id!, nameController.text);
+                    .updateCategory(
+                      category.id!,
+                      nameController.text,
+                      image: imageController.text.trim().isEmpty
+                          ? null
+                          : imageController.text.trim(),
+                    );
                 if (!context.mounted) return;
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(

@@ -9,6 +9,7 @@ public interface MenuItemService {
     MenuItem getMenuItemById(Long id);
     List<MenuItem> getMenuItemsByRestaurant(Long restaurantId);
     List<MenuItem> getMenuItemsByCategory(Long categoryId);
+    List<MenuItem> getMenuItemsByCategoryAndRestaurant(Long categoryId, Long restaurantId);
     List<MenuItem> searchMenuItems(String keyword);
     List<MenuItem> searchWithFilters(String keyword, Long restaurantId, Long categoryId, Double minPrice, Double maxPrice);
     List<MenuItem> getAvailableMenuItems();

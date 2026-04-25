@@ -271,6 +271,37 @@ class AdminRestaurantsNotifier extends StateNotifier<AdminRestaurantsState> {
   void clearError() {
     state = state.copyWith(error: null);
   }
+
+  Future<bool> createRestaurant({
+    required String name,
+    required String address,
+    String? phone,
+    String? image,
+    String? description,
+    double? latitude,
+    double? longitude,
+    double? deliveryRadius,
+    double? commissionRate,
+  }) async {
+    try {
+      await _adminService.createRestaurant(
+        name: name,
+        address: address,
+        phone: phone,
+        image: image,
+        description: description,
+        latitude: latitude,
+        longitude: longitude,
+        deliveryRadius: deliveryRadius,
+        commissionRate: commissionRate,
+      );
+      await loadRestaurants();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: ErrorUtils.message(e));
+      return false;
+    }
+  }
 }
 
 // Categories Notifier
@@ -290,9 +321,9 @@ class AdminCategoriesNotifier extends StateNotifier<AdminCategoriesState> {
     }
   }
 
-  Future<bool> createCategory(String name) async {
+  Future<bool> createCategory(String name, {String? image}) async {
     try {
-      await _adminService.createCategory(name);
+      await _adminService.createCategory(name, image: image);
       await loadCategories();
       return true;
     } catch (e) {
@@ -301,9 +332,9 @@ class AdminCategoriesNotifier extends StateNotifier<AdminCategoriesState> {
     }
   }
 
-  Future<bool> updateCategory(int id, String name) async {
+  Future<bool> updateCategory(int id, String name, {String? image}) async {
     try {
-      await _adminService.updateCategory(id, name);
+      await _adminService.updateCategory(id, name, image: image);
       await loadCategories();
       return true;
     } catch (e) {

@@ -27,9 +27,9 @@ public class Restaurant extends BaseEntity {
     @Column(name = "is_open")
     private Boolean isOpen;
 
-    @OneToMany(mappedBy = "restaurant")
-    @JsonIgnore
-    private List<MenuItem> menuItems;
+    private String image;
+    private String phone;
+    private String description;
 
     // GPS coordinates
     private Double latitude;
@@ -37,4 +37,12 @@ public class Restaurant extends BaseEntity {
 
     // Delivery radius in kilometers
     private Double deliveryRadius = 10.0;
+
+    // Commission rate (e.g., 0.10 = 10%)
+    @Column(name = "commission_rate")
+    private Double commissionRate = 0.10;
+
+    @OneToMany(mappedBy = "restaurant")
+    @JsonIgnore
+    private List<MenuItem> menuItems;
 }
