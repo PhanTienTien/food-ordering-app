@@ -74,7 +74,16 @@ public class StaffOrderController {
         return orderService.updateStatus(orderId, OrderStatus.READY, staff.getId());
     }
 
-    // Mark as delivered (when driver delivers)
+    // Mark as delivering (when driver picks up)
+    @PutMapping("/{orderId}/delivering")
+    public Order markDelivering(
+            @PathVariable Long orderId,
+            Authentication authentication) {
+        User staff = requireStaff(authentication);
+        return orderService.updateStatus(orderId, OrderStatus.DELIVERING, staff.getId());
+    }
+
+    // Mark as delivered/completed (when driver delivers)
     @PutMapping("/{orderId}/delivered")
     public Order markDelivered(
             @PathVariable Long orderId,
@@ -83,7 +92,7 @@ public class StaffOrderController {
         return orderService.updateStatus(orderId, OrderStatus.COMPLETED, staff.getId());
     }
 
-    // Cancel order with reason
+    // Cancel order with reason (staff cancels for their restaurant's orders)
     @PutMapping("/{orderId}/cancel")
     public Order cancelOrder(
             @PathVariable Long orderId,
@@ -91,7 +100,7 @@ public class StaffOrderController {
             Authentication authentication) {
         User staff = requireStaff(authentication);
         // TODO: Log cancellation reason
-        return orderService.cancelOrder(orderId, staff.getId());
+        return orderService.cancelOrderByStaff(orderId, staff.getId());
     }
 
     private User requireStaff(Authentication authentication) {

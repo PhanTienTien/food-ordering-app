@@ -89,7 +89,10 @@ class OrderService {
     try {
       final response = await _dio.post(
         '/orders/$orderId/pay',
-        data: {'paymentMethod': paymentMethod},
+        data: {
+          'paymentMethod': paymentMethod,
+          'simulateSuccess': true, // For testing - simulate successful payment
+        },
       );
       return Order.fromJson(response.data);
     } on DioException catch (e) {

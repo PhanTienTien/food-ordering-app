@@ -26,6 +26,7 @@ mixin _$Cart {
   int? get restaurantId => throw _privateConstructorUsedError;
   String? get restaurantName => throw _privateConstructorUsedError;
   List<CartItem> get items => throw _privateConstructorUsedError;
+  @JsonKey(name: 'totalPrice')
   double? get totalAmount => throw _privateConstructorUsedError;
 
   /// Serializes this Cart to a JSON map.
@@ -48,7 +49,7 @@ abstract class $CartCopyWith<$Res> {
     int? restaurantId,
     String? restaurantName,
     List<CartItem> items,
-    double? totalAmount,
+    @JsonKey(name: 'totalPrice') double? totalAmount,
   });
 }
 
@@ -120,7 +121,7 @@ abstract class _$$CartImplCopyWith<$Res> implements $CartCopyWith<$Res> {
     int? restaurantId,
     String? restaurantName,
     List<CartItem> items,
-    double? totalAmount,
+    @JsonKey(name: 'totalPrice') double? totalAmount,
   });
 }
 
@@ -183,7 +184,7 @@ class _$CartImpl implements _Cart {
     this.restaurantId,
     this.restaurantName,
     final List<CartItem> items = const [],
-    this.totalAmount,
+    @JsonKey(name: 'totalPrice') this.totalAmount,
   }) : _items = items;
 
   factory _$CartImpl.fromJson(Map<String, dynamic> json) =>
@@ -207,6 +208,7 @@ class _$CartImpl implements _Cart {
   }
 
   @override
+  @JsonKey(name: 'totalPrice')
   final double? totalAmount;
 
   @override
@@ -263,7 +265,7 @@ abstract class _Cart implements Cart {
     final int? restaurantId,
     final String? restaurantName,
     final List<CartItem> items,
-    final double? totalAmount,
+    @JsonKey(name: 'totalPrice') final double? totalAmount,
   }) = _$CartImpl;
 
   factory _Cart.fromJson(Map<String, dynamic> json) = _$CartImpl.fromJson;
@@ -279,6 +281,7 @@ abstract class _Cart implements Cart {
   @override
   List<CartItem> get items;
   @override
+  @JsonKey(name: 'totalPrice')
   double? get totalAmount;
 
   /// Create a copy of Cart

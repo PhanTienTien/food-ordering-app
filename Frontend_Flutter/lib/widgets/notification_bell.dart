@@ -4,8 +4,14 @@ import '../screens/notifications_screen.dart';
 class NotificationBell extends StatefulWidget {
   final int count;
   final int? userId;
+  final VoidCallback? onNavigateBack;
 
-  const NotificationBell({super.key, this.count = 0, this.userId});
+  const NotificationBell({
+    super.key,
+    this.count = 0,
+    this.userId,
+    this.onNavigateBack,
+  });
 
   @override
   State<NotificationBell> createState() => _NotificationBellState();
@@ -47,7 +53,10 @@ class _NotificationBellState extends State<NotificationBell>
           MaterialPageRoute(
             builder: (_) => NotificationsScreen(userId: widget.userId),
           ),
-        );
+        ).then((_) {
+          // Trigger callback when navigating back from notification screen
+          widget.onNavigateBack?.call();
+        });
       },
       icon: AnimatedBuilder(
         animation: _animation,

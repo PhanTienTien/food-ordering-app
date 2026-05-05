@@ -1,9 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../constants/colors.dart';
 import '../../models/menu_item.dart';
 import '../../providers/staff_provider.dart';
+import '../../services/file_service.dart';
+import '../../utils/image_utils.dart';
 
 class StaffMenuScreen extends ConsumerStatefulWidget {
   final int restaurantId;
@@ -154,93 +157,155 @@ class _StaffMenuScreenState extends ConsumerState<StaffMenuScreen> {
     final imageController = TextEditingController();
     final descriptionController = TextEditingController();
     final categoryIdController = TextEditingController();
+    String? uploadedImageUrl;
+    bool isUploading = false;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Thêm món mới'),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Tên món'),
-                  validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
-                ),
-                TextFormField(
-                  controller: priceController,
-                  decoration: const InputDecoration(labelText: 'Giá gốc'),
-                  keyboardType: TextInputType.number,
-                  validator: (v) => v == null || double.tryParse(v) == null
-                      ? 'Phải là số'
-                      : null,
-                ),
-                TextFormField(
-                  controller: discountController,
-                  decoration: const InputDecoration(
-                    labelText: 'Giá khuyến mãi',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Thêm món mới'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Tên món'),
+                    validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
                   ),
-                  keyboardType: TextInputType.number,
-                ),
-                TextFormField(
-                  controller: imageController,
-                  decoration: const InputDecoration(labelText: 'Ảnh URL'),
-                ),
-                TextFormField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(labelText: 'Mô tả'),
-                ),
-                TextFormField(
-                  controller: categoryIdController,
-                  decoration: const InputDecoration(labelText: 'Category ID'),
-                  keyboardType: TextInputType.number,
-                ),
-              ],
+                  TextFormField(
+                    controller: priceController,
+                    decoration: const InputDecoration(labelText: 'Giá gốc'),
+                    keyboardType: TextInputType.number,
+                    validator: (v) => v == null || double.tryParse(v) == null
+                        ? 'Phải là số'
+                        : null,
+                  ),
+                  TextFormField(
+                    controller: discountController,
+                    decoration: const InputDecoration(
+                      labelText: 'Giá khuyến mãi',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: imageController,
+                          decoration: const InputDecoration(labelText: 'Ảnh URL'),
+                          readOnly: uploadedImageUrl != null,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.photo_library),
+                        onPressed: isUploading
+                            ? null
+                            : () async {
+                                final picker = ImagePicker();
+                                final pickedFile = await picker.pickImage(
+                                  source: ImageSource.gallery,
+                                  imageQuality: 80,
+                                );
+                                if (pickedFile != null && dialogContext.mounted) {
+                                  setDialogState(() => isUploading = true);
+                                  try {
+                                    final fileService = FileService();
+                                    final url = await fileService.uploadImage(pickedFile.path);
+                                    if (url != null && dialogContext.mounted) {
+                                      setDialogState(() {
+                                        uploadedImageUrl = url;
+                                        imageController.text = url;
+                                      });
+                                      ScaffoldMessenger.of(dialogContext).showSnackBar(
+                                        const SnackBar(content: Text('Đã upload ảnh thành công')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (dialogContext.mounted) {
+                                      ScaffoldMessenger.of(dialogContext).showSnackBar(
+                                        SnackBar(content: Text('Upload thất bại: $e')),
+                                      );
+                                    }
+                                  } finally {
+                                    if (dialogContext.mounted) {
+                                      setDialogState(() => isUploading = false);
+                                    }
+                                  }
+                                }
+                              },
+                        tooltip: 'Chọn ảnh từ thiết bị',
+                      ),
+                      if (isUploading)
+                        const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                    ],
+                  ),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: 'Mô tả'),
+                  ),
+                  TextFormField(
+                    controller: categoryIdController,
+                    decoration: const InputDecoration(labelText: 'Category ID'),
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
+              ),
             ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              onPressed: isUploading
+                  ? null
+                  : () async {
+                      if (!(formKey.currentState?.validate() ?? false)) return;
+                      Navigator.pop(dialogContext);
+                      final payload = <String, dynamic>{
+                        'name': nameController.text.trim(),
+                        'price': double.parse(priceController.text.trim()),
+                        'discountPrice': discountController.text.trim().isEmpty
+                            ? null
+                            : double.tryParse(discountController.text.trim()),
+                        'image': imageController.text.trim().isEmpty
+                            ? null
+                            : imageController.text.trim(),
+                        'description': descriptionController.text.trim().isEmpty
+                            ? null
+                            : descriptionController.text.trim(),
+                        'restaurantId': widget.restaurantId,
+                        'categoryId': categoryIdController.text.trim().isEmpty
+                            ? null
+                            : int.tryParse(categoryIdController.text.trim()),
+                      };
+                      final success = await ref
+                          .read(staffMenuProvider.notifier)
+                          .createMenuItem(payload);
+                      if (!context.mounted) return;
+                      if (success) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(const SnackBar(content: Text('Đã thêm món')));
+                      }
+                    },
+              child: const Text('Lưu'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (!(formKey.currentState?.validate() ?? false)) return;
-              Navigator.pop(context);
-              final payload = <String, dynamic>{
-                'name': nameController.text.trim(),
-                'price': double.parse(priceController.text.trim()),
-                'discountPrice': discountController.text.trim().isEmpty
-                    ? null
-                    : double.tryParse(discountController.text.trim()),
-                'image': imageController.text.trim().isEmpty
-                    ? null
-                    : imageController.text.trim(),
-                'description': descriptionController.text.trim().isEmpty
-                    ? null
-                    : descriptionController.text.trim(),
-                'restaurantId': widget.restaurantId,
-                'categoryId': categoryIdController.text.trim().isEmpty
-                    ? null
-                    : int.tryParse(categoryIdController.text.trim()),
-              };
-              final success = await ref
-                  .read(staffMenuProvider.notifier)
-                  .createMenuItem(payload);
-              if (!context.mounted) return;
-              if (success) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Đã thêm món')));
-              }
-            },
-            child: const Text('Lưu'),
-          ),
-        ],
       ),
     );
   }
@@ -293,7 +358,9 @@ class _MenuItemCard extends StatelessWidget {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
-            item.image ?? 'https://via.placeholder.com/60',
+            ImageUtils.buildImageUrl(item.image).isNotEmpty
+                ? ImageUtils.buildImageUrl(item.image)
+                : 'https://via.placeholder.com/60',
             width: 60,
             height: 60,
             fit: BoxFit.cover,

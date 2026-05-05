@@ -13,7 +13,7 @@ _$CartItemImpl _$$CartItemImplFromJson(Map<String, dynamic> json) =>
       menuItem: json['menuItem'] == null
           ? null
           : MenuItem.fromJson(json['menuItem'] as Map<String, dynamic>),
-      unitPrice: (json['unitPrice'] as num?)?.toDouble(),
+      unitPrice: (json['price'] as num?)?.toDouble(),
       totalPrice: (json['totalPrice'] as num?)?.toDouble(),
     );
 
@@ -22,6 +22,6 @@ Map<String, dynamic> _$$CartItemImplToJson(_$CartItemImpl instance) =>
       'id': instance.id,
       'quantity': instance.quantity,
       'menuItem': instance.menuItem,
-      'unitPrice': instance.unitPrice,
+      'price': instance.unitPrice,
       'totalPrice': instance.totalPrice,
     };

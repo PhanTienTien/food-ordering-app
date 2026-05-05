@@ -13,7 +13,16 @@ import java.util.Date;
 public class JwtUtil {
 
     private static final String SECRET =
-            "bXlfc3VwZXJfc2VjcmV0X2tleV9mb3Jfand0XzEyMzQ1Ng==";
+            System.getenv("JWT_SECRET");
+    private final long expiration;
+
+    public JwtUtil() {
+        String envSecret = System.getenv("JWT_SECRET");
+        if (envSecret == null || envSecret.isEmpty()) {
+            throw new IllegalStateException("JWT_SECRET environment variable must be set");
+        }
+        this.expiration = 86400000;
+    }
 
     public String generateToken(User user) {
 

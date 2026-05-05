@@ -24,6 +24,7 @@ mixin _$CartItem {
   int? get id => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
   MenuItem? get menuItem => throw _privateConstructorUsedError;
+  @JsonKey(name: 'price')
   double? get unitPrice => throw _privateConstructorUsedError;
   double? get totalPrice => throw _privateConstructorUsedError;
 
@@ -46,7 +47,7 @@ abstract class $CartItemCopyWith<$Res> {
     int? id,
     int quantity,
     MenuItem? menuItem,
-    double? unitPrice,
+    @JsonKey(name: 'price') double? unitPrice,
     double? totalPrice,
   });
 
@@ -129,7 +130,7 @@ abstract class _$$CartItemImplCopyWith<$Res>
     int? id,
     int quantity,
     MenuItem? menuItem,
-    double? unitPrice,
+    @JsonKey(name: 'price') double? unitPrice,
     double? totalPrice,
   });
 
@@ -191,7 +192,7 @@ class _$CartItemImpl implements _CartItem {
     this.id,
     required this.quantity,
     this.menuItem,
-    this.unitPrice,
+    @JsonKey(name: 'price') this.unitPrice,
     this.totalPrice,
   });
 
@@ -205,6 +206,7 @@ class _$CartItemImpl implements _CartItem {
   @override
   final MenuItem? menuItem;
   @override
+  @JsonKey(name: 'price')
   final double? unitPrice;
   @override
   final double? totalPrice;
@@ -254,7 +256,7 @@ abstract class _CartItem implements CartItem {
     final int? id,
     required final int quantity,
     final MenuItem? menuItem,
-    final double? unitPrice,
+    @JsonKey(name: 'price') final double? unitPrice,
     final double? totalPrice,
   }) = _$CartItemImpl;
 
@@ -268,6 +270,7 @@ abstract class _CartItem implements CartItem {
   @override
   MenuItem? get menuItem;
   @override
+  @JsonKey(name: 'price')
   double? get unitPrice;
   @override
   double? get totalPrice;

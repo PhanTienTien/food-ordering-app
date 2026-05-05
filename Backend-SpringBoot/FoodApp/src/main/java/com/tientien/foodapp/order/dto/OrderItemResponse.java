@@ -7,7 +7,21 @@ import lombok.Setter;
 @Setter
 public class OrderItemResponse {
 
-    private String name;
+    private Long id;
     private Integer quantity;
-    private Double price;
+    private Double priceAtOrder;
+    private Double totalPrice;
+
+    // Nested menuItem info
+    private MenuItemSummary menuItem;
+
+    @Getter
+    @Setter
+    public static class MenuItemSummary {
+        private Long id;
+        private String name;
+        private String image;
+        private Double price;
+        private Double discountPrice;
+    }
 }

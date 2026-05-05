@@ -10,7 +10,7 @@ class CartItem with _$CartItem {
     int? id,
     required int quantity,
     MenuItem? menuItem,
-    double? unitPrice,
+    @JsonKey(name: 'price') double? unitPrice,
     double? totalPrice,
   }) = _CartItem;
 

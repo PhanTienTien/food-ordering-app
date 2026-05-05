@@ -24,17 +24,25 @@ public class CartMapper {
         List<CartItemResponse> items = cart.getItems().stream().map(ci -> {
             CartItemResponse item = new CartItemResponse();
 
-            item.setMenuItemId(ci.getMenuItem().getId());
-            item.setName(ci.getMenuItem().getName());
-            item.setImage(ci.getMenuItem().getImage());
+            item.setId(ci.getId());
+            item.setQuantity(ci.getQuantity());
 
-            double price = ci.getMenuItem().getDiscountPrice() != null
+            // Build nested menuItem object to match FE expected schema
+            CartItemResponse.MenuItemSummary menuItemSummary = new CartItemResponse.MenuItemSummary();
+            menuItemSummary.setId(ci.getMenuItem().getId());
+            menuItemSummary.setName(ci.getMenuItem().getName());
+            menuItemSummary.setImage(ci.getMenuItem().getImage());
+            menuItemSummary.setPrice(ci.getMenuItem().getPrice());
+            menuItemSummary.setDiscountPrice(ci.getMenuItem().getDiscountPrice());
+
+            item.setMenuItem(menuItemSummary);
+
+            double unitPrice = ci.getMenuItem().getDiscountPrice() != null
                     ? ci.getMenuItem().getDiscountPrice()
                     : ci.getMenuItem().getPrice();
 
-            item.setPrice(price);
-            item.setQuantity(ci.getQuantity());
-            item.setTotalPrice(price * ci.getQuantity());
+            item.setUnitPrice(unitPrice);
+            item.setTotalPrice(unitPrice * ci.getQuantity());
 
             return item;
         }).toList();

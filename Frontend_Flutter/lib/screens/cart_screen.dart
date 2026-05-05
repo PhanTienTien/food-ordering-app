@@ -9,6 +9,7 @@ import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
 import '../screens/payment_method_screen.dart';
 import '../widgets/app_header.dart';
+import '../utils/image_utils.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -28,6 +29,46 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
   Future<void> _refreshCart() async {
     await ref.read(cartProvider.notifier).loadCart();
+  }
+
+  Future<void> _quickCheckout() async {
+    final cart = ref.read(cartProvider).cart;
+    final userId = ref.read(authProvider).userId;
+    if (cart == null || cart.items.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Giỏ hàng đang trống')));
+      return;
+    }
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không tìm thấy user hiện tại')),
+      );
+      return;
+    }
+
+    final request = CheckoutRequest(
+      userId: userId,
+      shippingAddress: '123 Test Street, Dev City',
+      phoneNumber: '0901234567',
+      note: 'Quick checkout (Dev Test)',
+      paymentMethod: 'COD',
+      voucherCode: null,
+    );
+
+    final success = await ref.read(orderActionProvider.notifier).checkout(request);
+    if (!context.mounted) return;
+    if (!success) {
+      final error = ref.read(orderActionProvider).error;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error ?? 'Quick checkout thất bại')));
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('[DEV] Đặt hàng COD thành công!')),
+    );
   }
 
   Future<void> _showCheckoutDialog() async {
@@ -242,6 +283,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     ),
                     child: const Text('Checkout'),
                   ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _quickCheckout,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      minimumSize: const Size.fromHeight(50),
+                    ),
+                    child: const Text('Quick Checkout (Dev Test - COD)'),
+                  ),
                 ],
               ),
       ),
@@ -265,7 +315,10 @@ class _CartItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final menuItem = item.menuItem;
-    final image = menuItem?.image ?? 'https://via.placeholder.com/100';
+    final fullImageUrl = ImageUtils.buildImageUrl(menuItem?.image);
+    final image = fullImageUrl.isNotEmpty
+        ? fullImageUrl
+        : 'https://via.placeholder.com/100';
     final name = menuItem?.name ?? 'Không tên';
     final price = item.totalPrice ?? ((item.unitPrice ?? 0) * item.quantity);
 

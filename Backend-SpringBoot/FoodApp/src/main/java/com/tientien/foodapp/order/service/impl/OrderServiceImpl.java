@@ -40,6 +40,10 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 💣 Validate restaurant
+        if (cart.getRestaurant() == null) {
+            throw new RuntimeException("Cart has no restaurant assigned");
+        }
+
         if (!cart.getRestaurant().getIsOpen()) {
             throw new RuntimeException("Restaurant is closed");
         }
@@ -143,6 +147,36 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.save(order);
     }
 
+    @Override
+    public Order cancelOrderByStaff(Long orderId, Long staffId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        User staff = userRepository.findById(staffId)
+                .orElseThrow(() -> new RuntimeException("Staff not found"));
+
+        // Check role
+        if (staff.getRole() != UserRole.STAFF) {
+            throw new RuntimeException("Only staff can cancel orders");
+        }
+
+        // Check restaurant ownership (staff can only cancel orders from their restaurant)
+        if (!order.getRestaurant().getId().equals(staff.getRestaurant().getId())) {
+            throw new RuntimeException("Not your restaurant order");
+        }
+
+        // Staff can cancel orders in PENDING, ACCEPTED, or PREPARING status
+        if (order.getStatus() != OrderStatus.PENDING &&
+            order.getStatus() != OrderStatus.ACCEPTED &&
+            order.getStatus() != OrderStatus.PREPARING) {
+            throw new RuntimeException("Cannot cancel order at this status");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+
+        return orderRepository.save(order);
+    }
+
     private boolean isValidTransition(OrderStatus current, OrderStatus next) {
 
         return switch (current) {
@@ -175,6 +209,10 @@ public class OrderServiceImpl implements OrderService {
 
         if (cart.getItems().isEmpty()) {
             throw new RuntimeException("Cart is empty");
+        }
+
+        if (cart.getRestaurant() == null) {
+            throw new RuntimeException("Cart has no restaurant assigned");
         }
 
         if (!cart.getRestaurant().getIsOpen()) {

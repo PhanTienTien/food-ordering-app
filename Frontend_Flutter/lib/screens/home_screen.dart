@@ -4,6 +4,8 @@ import '../constants/colors.dart';
 import '../models/restaurant.dart';
 import '../providers/menu_item_provider.dart';
 import '../providers/restaurant_provider.dart';
+import '../providers/notification_provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/food_card.dart';
 import '../widgets/notification_bell.dart';
@@ -33,10 +35,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _loadHomeData() async {
+    final userId = ref.read(authProvider).userId;
     await Future.wait([
       ref.read(restaurantProvider.notifier).loadRestaurants(),
       ref.read(menuItemProvider.notifier).loadMenuItems(),
-    ]);
+      if (userId != null)
+        ref.read(notificationProvider.notifier).loadUnreadCount(userId),
+    ].whereType<Future<void>>().toList());
   }
 
   Future<void> _search(String keyword) async {
@@ -69,7 +74,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        actions: const [NotificationBell(count: 3)],
+        actions: const [_NotificationBellWithCount()],
       ),
       body: RefreshIndicator(
         onRefresh: _loadHomeData,
@@ -77,12 +82,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           slivers: [
             SliverToBoxAdapter(child: _buildHeader()),
             SliverToBoxAdapter(child: _buildSearchBar()),
-            SliverToBoxAdapter(
-              child: _buildRestaurantSection(
-                restaurantState.restaurants,
-                menuState.selectedRestaurantId,
+            if (restaurantState.isLoading)
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              )
+            else if (restaurantState.error != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: Text('Loi: ${restaurantState.error}'),
+                  ),
+                ),
+              )
+            else if (restaurantState.restaurants.isEmpty)
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: Text('Khong co nha hang nao')),
+                ),
+              )
+            else
+              SliverToBoxAdapter(
+                child: _buildRestaurantSection(
+                  restaurantState.restaurants,
+                  menuState.selectedRestaurantId,
+                ),
               ),
-            ),
             SliverToBoxAdapter(child: _buildSectionTitle('Mon dang pho bien')),
             if (menuState.isLoading)
               const SliverFillRemaining(
@@ -271,6 +300,27 @@ class _RestaurantChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _NotificationBellWithCount extends ConsumerWidget {
+  const _NotificationBellWithCount();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(unreadCountProvider);
+    final userId = ref.watch(authProvider).userId;
+
+    return NotificationBell(
+      count: unreadCount,
+      userId: userId,
+      onNavigateBack: () {
+        // Refresh unread count when returning from notification screen
+        if (userId != null) {
+          ref.read(notificationProvider.notifier).loadUnreadCount(userId);
+        }
+      },
     );
   }
 }

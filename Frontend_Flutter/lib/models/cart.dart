@@ -13,7 +13,7 @@ class Cart with _$Cart {
     int? restaurantId,
     String? restaurantName,
     @Default([]) List<CartItem> items,
-    double? totalAmount,
+    @JsonKey(name: 'totalPrice') double? totalAmount,
   }) = _Cart;
 
   factory Cart.fromJson(Map<String, dynamic> json) => _$CartFromJson(json);

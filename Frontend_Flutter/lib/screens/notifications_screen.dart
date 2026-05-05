@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/colors.dart';
 import '../models/notification_item.dart';
 import '../services/notification_service.dart';
-import '../utils/token_storage.dart';
+import '../providers/auth_provider.dart';
+import '../providers/notification_provider.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   final int? userId;
 
   const NotificationsScreen({super.key, this.userId});
 
   @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   final NotificationService _service = NotificationService();
   List<AppNotification> notifications = [];
   bool isLoading = true;
@@ -26,7 +28,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _loadNotifications() async {
     try {
-      final userId = widget.userId ?? await TokenStorage.getUserId();
+      final userId = widget.userId ?? ref.read(authProvider).userId;
       if (userId == null) {
         throw Exception('Missing user id');
       }
@@ -37,28 +39,66 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     } catch (e) {
       setState(() => isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không thể tải thông báo: $e')),
+        );
+      }
     }
   }
 
   Future<void> _markAllAsRead() async {
-    final userId = widget.userId ?? await TokenStorage.getUserId();
+    final userId = widget.userId ?? ref.read(authProvider).userId;
     if (userId == null) return;
-    await _service.markAllAsRead(userId);
-    await _loadNotifications();
+    try {
+      await _service.markAllAsRead(userId);
+      // Refresh unread count in provider
+      await ref.read(notificationProvider.notifier).loadUnreadCount(userId);
+      await _loadNotifications();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Thao tác thất bại: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _toggleRead(AppNotification item) async {
-    final userId = widget.userId ?? await TokenStorage.getUserId();
+    final userId = widget.userId ?? ref.read(authProvider).userId;
     if (userId == null || item.id == null) return;
     if (item.isRead == true) return;
-    await _service.markAsRead(item.id!, userId);
-    await _loadNotifications();
+    try {
+      await _service.markAsRead(item.id!, userId);
+      // Refresh unread count in provider
+      await ref.read(notificationProvider.notifier).loadUnreadCount(userId);
+      await _loadNotifications();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đánh dấu đã đọc thất bại: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _delete(AppNotification item) async {
     if (item.id == null) return;
-    await _service.deleteNotification(item.id!);
-    await _loadNotifications();
+    try {
+      await _service.deleteNotification(item.id!);
+      // Refresh unread count in provider
+      final userId = widget.userId ?? ref.read(authProvider).userId;
+      if (userId != null) {
+        await ref.read(notificationProvider.notifier).loadUnreadCount(userId);
+      }
+      await _loadNotifications();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Xóa thông báo thất bại: $e')),
+        );
+      }
+    }
   }
 
   @override

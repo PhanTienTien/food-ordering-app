@@ -1,5 +1,6 @@
 package com.tientien.foodapp.menuitems.repository;
 
+import com.tientien.foodapp.common.enums.MenuItemStatus;
 import com.tientien.foodapp.menuitems.entity.MenuItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,8 +18,8 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     List<MenuItem> findByCategoryIdAndRestaurantId(Long categoryId, Long restaurantId);
 
-    // Search by name (case insensitive)
-    @Query("SELECT m FROM MenuItem m WHERE LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    // Search by name (case insensitive) - only AVAILABLE items
+    @Query("SELECT m FROM MenuItem m WHERE LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%')) AND m.status = 'AVAILABLE'")
     List<MenuItem> searchByName(@Param("keyword") String keyword);
 
     // Search with filters
@@ -37,5 +38,5 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
             @Param("maxPrice") Double maxPrice);
 
     // Find by status
-    List<MenuItem> findByStatus(String status);
+    List<MenuItem> findByStatus(MenuItemStatus status);
 }

@@ -51,7 +51,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Override
     public List<MenuItem> searchMenuItems(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
-            return menuItemRepository.findByStatus(MenuItemStatus.AVAILABLE.name());
+            return menuItemRepository.findByStatus(MenuItemStatus.AVAILABLE);
         }
         return menuItemRepository.searchByName(keyword);
     }
@@ -64,7 +64,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 
     @Override
     public List<MenuItem> getAvailableMenuItems() {
-        return menuItemRepository.findByStatus(MenuItemStatus.AVAILABLE.name());
+        return menuItemRepository.findByStatus(MenuItemStatus.AVAILABLE);
     }
 
     @Override

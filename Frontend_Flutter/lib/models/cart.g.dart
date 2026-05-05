@@ -16,7 +16,7 @@ _$CartImpl _$$CartImplFromJson(Map<String, dynamic> json) => _$CartImpl(
           ?.map((e) => CartItem.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  totalAmount: (json['totalAmount'] as num?)?.toDouble(),
+  totalAmount: (json['totalPrice'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$$CartImplToJson(_$CartImpl instance) =>
@@ -26,5 +26,5 @@ Map<String, dynamic> _$$CartImplToJson(_$CartImpl instance) =>
       'restaurantId': instance.restaurantId,
       'restaurantName': instance.restaurantName,
       'items': instance.items,
-      'totalAmount': instance.totalAmount,
+      'totalPrice': instance.totalAmount,
     };

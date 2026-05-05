@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/colors.dart';
 import '../models/menu_item.dart';
 import '../providers/cart_provider.dart';
+import '../providers/favorite_provider.dart';
+import '../providers/auth_provider.dart';
+import '../utils/image_utils.dart';
 
 class FoodDetailScreen extends ConsumerStatefulWidget {
   final MenuItem menuItem;
@@ -17,6 +20,22 @@ class FoodDetailScreen extends ConsumerStatefulWidget {
 class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
   int _quantity = 1;
   bool _isAdding = false;
+  bool _isFavoriteLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFavorites();
+    });
+  }
+
+  Future<void> _loadFavorites() async {
+    final userId = ref.read(authProvider).userId;
+    if (userId != null) {
+      await ref.read(favoriteProvider.notifier).loadFavorites(userId);
+    }
+  }
 
   Future<void> _addToCart() async {
     if (_isAdding) return;
@@ -56,7 +75,9 @@ class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
         children: [
           Positioned.fill(
             child: Image.network(
-              item.image ?? 'https://via.placeholder.com/800x600',
+              ImageUtils.buildImageUrl(item.image).isNotEmpty
+                  ? ImageUtils.buildImageUrl(item.image)
+                  : 'https://via.placeholder.com/800x600',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
                 color: Colors.grey[300],
@@ -79,7 +100,7 @@ class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
                       ),
                       const Spacer(),
-                      const Icon(Icons.favorite_border, color: Colors.white),
+                      _buildFavoriteButton()
                     ],
                   ),
                 ),
@@ -97,6 +118,71 @@ class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Row(
+                        children: [
+                          if (item.categoryName != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                item.categoryName!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(width: 8),
+                          if (item.status != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: item.status == 'AVAILABLE'
+                                    ? Colors.green.withOpacity(0.1)
+                                    : Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    item.status == 'AVAILABLE'
+                                        ? Icons.check_circle
+                                        : Icons.cancel,
+                                    size: 14,
+                                    color: item.status == 'AVAILABLE'
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    item.status == 'AVAILABLE'
+                                        ? 'Còn hàng'
+                                        : 'Hết hàng',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: item.status == 'AVAILABLE'
+                                          ? Colors.green
+                                          : Colors.red,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       Text(
                         item.name,
                         style: const TextStyle(
@@ -105,21 +191,61 @@ class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
+                      if (item.restaurantName != null)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.store,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              item.restaurantName!,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      const SizedBox(height: 12),
                       Text(
                         item.description ?? 'Chưa có mô tả',
-                        style: TextStyle(color: Colors.grey[700]),
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '${price.toStringAsFixed(0)} đ',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (item.discountPrice != null &&
+                                  item.discountPrice! > 0) ...[
+                                Text(
+                                  '${item.price.toStringAsFixed(0)} đ',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[400],
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                              ],
+                              Text(
+                                '${price.toStringAsFixed(0)} đ',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
                           ),
                           Row(
                             children: [
@@ -173,6 +299,66 @@ class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFavoriteButton() {
+    final favoriteState = ref.watch(favoriteProvider);
+    final isFavorited = favoriteState.favoriteItemIds.contains(widget.menuItem.id);
+
+    return IconButton(
+      onPressed: _isFavoriteLoading
+          ? null
+          : () async {
+              final userId = ref.read(authProvider).userId;
+              if (userId == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Vui lòng đăng nhập để thêm vào yêu thích')),
+                );
+                return;
+              }
+
+              setState(() => _isFavoriteLoading = true);
+
+              try {
+                await ref.read(favoriteProvider.notifier).toggleFavorite(
+                  userId,
+                  widget.menuItem.id!,
+                );
+
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isFavorited ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích',
+                    ),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Lỗi: $e')),
+                );
+              } finally {
+                if (mounted) {
+                  setState(() => _isFavoriteLoading = false);
+                }
+              }
+            },
+      icon: _isFavoriteLoading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : Icon(
+              isFavorited ? Icons.favorite : Icons.favorite_border,
+              color: isFavorited ? Colors.red : Colors.white,
+            ),
     );
   }
 }

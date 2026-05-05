@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/colors.dart';
 import '../models/favorite_item.dart';
 import '../providers/auth_provider.dart';
-import '../services/favorite_service.dart';
+import '../providers/favorite_provider.dart';
+import '../screens/food_detail_screen.dart';
+import '../utils/image_utils.dart';
 
 class FavoriteScreen extends ConsumerStatefulWidget {
   const FavoriteScreen({super.key});
@@ -13,29 +15,18 @@ class FavoriteScreen extends ConsumerStatefulWidget {
 }
 
 class _FavoriteScreenState extends ConsumerState<FavoriteScreen> {
-  final FavoriteService _favoriteService = FavoriteService();
-  List<FavoriteItem> favorites = [];
-  bool isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadFavorites();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFavorites();
+    });
   }
 
   Future<void> _loadFavorites() async {
-    try {
-      final userId = ref.read(authProvider).userId;
-      if (userId == null) {
-        throw Exception('Missing user id');
-      }
-      final loaded = await _favoriteService.getFavoritesByUser(userId);
-      setState(() {
-        favorites = loaded;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() => isLoading = false);
+    final userId = ref.read(authProvider).userId;
+    if (userId != null) {
+      await ref.read(favoriteProvider.notifier).loadFavorites(userId);
     }
   }
 
@@ -44,8 +35,7 @@ class _FavoriteScreenState extends ConsumerState<FavoriteScreen> {
     final menuItemId = item.menuItem?.id;
     if (userId == null || menuItemId == null) return;
     try {
-      await _favoriteService.removeFavorite(userId, menuItemId);
-      await _loadFavorites();
+      await ref.read(favoriteProvider.notifier).toggleFavorite(userId, menuItemId);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -57,6 +47,8 @@ class _FavoriteScreenState extends ConsumerState<FavoriteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final favoriteState = ref.watch(favoriteProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -71,17 +63,17 @@ class _FavoriteScreenState extends ConsumerState<FavoriteScreen> {
           ),
         ],
       ),
-      body: isLoading
+      body: favoriteState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : favorites.isEmpty
+          : favoriteState.favorites.isEmpty
           ? _emptyState()
           : RefreshIndicator(
               onRefresh: _loadFavorites,
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
-                itemCount: favorites.length,
+                itemCount: favoriteState.favorites.length,
                 itemBuilder: (context, index) {
-                  return _favoriteItem(favorites[index]);
+                  return _favoriteItem(favoriteState.favorites[index]);
                 },
               ),
             ),
@@ -90,50 +82,70 @@ class _FavoriteScreenState extends ConsumerState<FavoriteScreen> {
 
   Widget _favoriteItem(FavoriteItem item) {
     final menuItem = item.menuItem;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(16),
-            ),
-            child: Image.network(
-              menuItem?.image ?? 'https://via.placeholder.com/100',
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
-            ),
+    if (menuItem == null) return const SizedBox.shrink();
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FoodDetailScreen(menuItem: menuItem),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    menuItem?.name ?? '',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    '${menuItem != null ? menuItem.price.toStringAsFixed(0) : '0'} đ',
-                    style: TextStyle(color: AppColors.primary),
-                  ),
-                ],
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(16),
+              ),
+              child: Image.network(
+                ImageUtils.buildImageUrl(menuItem.image).isNotEmpty
+                    ? ImageUtils.buildImageUrl(menuItem.image)
+                    : 'https://via.placeholder.com/100',
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.image_not_supported),
+                ),
               ),
             ),
-          ),
-          IconButton(
-            onPressed: () => _removeFavorite(item),
-            icon: const Icon(Icons.favorite, color: Colors.red),
-          ),
-        ],
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      menuItem.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '${menuItem.price.toStringAsFixed(0)} đ',
+                      style: TextStyle(color: AppColors.primary),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () => _removeFavorite(item),
+              icon: const Icon(Icons.favorite, color: Colors.red),
+            ),
+          ],
+        ),
       ),
     );
   }

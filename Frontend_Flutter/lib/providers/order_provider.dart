@@ -83,10 +83,11 @@ class OrderActionNotifier extends StateNotifier<OrderActionState> {
 
     try {
       final order = await _orderService.checkout(request);
-      state = state.copyWith(isLoading: false, currentOrder: order);
 
-      // Clear cart after successful checkout
-      _ref.read(cartProvider.notifier).clearCart();
+      // Clear cart after successful checkout - await to ensure UI syncs
+      await _ref.read(cartProvider.notifier).clearCart();
+
+      state = state.copyWith(isLoading: false, currentOrder: order);
 
       return true;
     } catch (e) {

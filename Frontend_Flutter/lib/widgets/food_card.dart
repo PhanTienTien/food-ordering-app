@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/menu_item.dart';
 import '../screens/food_detail_screen.dart';
+import '../utils/image_utils.dart';
 
 class FoodCard extends StatelessWidget {
   final MenuItem menuItem;
@@ -9,7 +10,10 @@ class FoodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = menuItem.image ?? 'https://via.placeholder.com/300x200';
+    final fullImageUrl = ImageUtils.buildImageUrl(menuItem.image);
+    final imageUrl = fullImageUrl.isNotEmpty
+        ? fullImageUrl
+        : 'https://via.placeholder.com/300x200';
     final price = menuItem.discountPrice != null && menuItem.discountPrice! > 0
         ? menuItem.discountPrice!
         : menuItem.price;
@@ -38,6 +42,7 @@ class FoodCard extends StatelessWidget {
               ),
               child: Image.network(
                 imageUrl,
+                headers: const {'Accept': 'image/*'},
                 height: 120,
                 width: double.infinity,
                 fit: BoxFit.cover,
